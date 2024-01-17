@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import "./App.css";
+import test from "./component/test"
 
 import {
   BrowserRouter as Router,
@@ -74,6 +75,7 @@ function App() {
                 )
               }
             />
+            <Route path="/test" element = {<test/>}/>
           </Routes>
         </Router>
       </div>

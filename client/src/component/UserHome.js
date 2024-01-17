@@ -19,12 +19,12 @@ const UserHome = ({ setAuth }) => {
     setDoctors(data);
   };
 
-    //on using search option stores searched name
-    const [inputs, setInputs] = useState({
-      name: "",
-    });
-    const { name } = inputs;
-    const onChange = (e) => {
+  //on using search option stores searched name
+  const [inputs, setInputs] = useState({
+    name: "",
+  });
+  const { name } = inputs;
+  const onChange = (e) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
 
@@ -41,7 +41,7 @@ const UserHome = ({ setAuth }) => {
         },
         body: JSON.stringify(body),
       });
-  
+
       const data = await res.json();
       setDoctors(data);
     } catch (err) {
@@ -57,11 +57,17 @@ const UserHome = ({ setAuth }) => {
   return (
     <Fragment>
       <h1 className="text-center my-5">Doctors</h1>
-      
+
       {/* search bar on top */}
-      <nav class="navbar navbar-light bg-light justify-content-between my-5" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)' }}>
+      <nav
+        class="navbar navbar-light bg-light justify-content-between my-5"
+        style={{
+          boxShadow:
+            "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+        }}
+      >
         <a class="navbar-brand">Available Doctors</a>
-        <form class="form-inline" onSubmit={search}>
+        <form class="form-inline d-flex" onSubmit={search}>
           <input
             class="form-control mr-sm-2"
             type="search"
@@ -85,7 +91,7 @@ const UserHome = ({ setAuth }) => {
               <div class="card-body">
                 <h5 class="card-title">{doctor.name}</h5>
                 <p class="card-text">Doctor ID: {doctor.id}</p>
-                <p class='card-text'>{doctor.email}</p>
+                <p class="card-text">{doctor.email}</p>
                 <button class="btn btn-success">Appointment</button>
               </div>
             </div>
