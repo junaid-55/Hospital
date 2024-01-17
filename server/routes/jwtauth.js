@@ -7,7 +7,6 @@ const info_validation = require("../middleware/info_validation");
 router.post("/register", info_validation, async (req, res) => {
   try {
     const { name,email,password } = req.body;
-    console.log(name);
     const user = await pool.query("SELECT * FROM person where name = ( $1 )", [
       name,
     ]);
@@ -30,7 +29,6 @@ router.post("/register", info_validation, async (req, res) => {
 router.post("/login", info_validation, async (req, res) => {
   try {
     const { name,email,password } = req.body;
-    // console.log(name);
     const user = await pool.query("SELECT * FROM person where name = ( $1 )", [
       name,
     ]);

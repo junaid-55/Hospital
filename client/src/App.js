@@ -12,13 +12,12 @@ import {
 
 import Login from "./component/Login";
 import Register from "./component/Register";
-import Doctors from "./component/Doctors";
+import UserHome from "./component/UserHome";
 
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
    async function check_Authenticated (){
     try {
-      console.log('trying');
       console.log(localStorage.token);
       const res = await fetch("http://localhost:5000/auth/is-verify", {
         method: "GET",
@@ -26,7 +25,6 @@ function App() {
       });
 
       const parseRes = await res.json();
-      console.log(parseRes);
       parseRes === true ? setAuthenticated(true) : setAuthenticated(false);
     } catch (err) {
       console.error(err.message);
@@ -47,17 +45,17 @@ function App() {
         <Router>
           <Routes>
             <Route
-              path="auth/login"
+              path="/auth/login"
               element={
                 !isAuthenticated ? (
                   <Login setAuth={setAuth} />
                 ) : (
-                  <Doctors setAuth={setAuth} />
+                  <UserHome setAuth={setAuth} />
                 )
               }
             />
             <Route
-              path="auth/register"
+              path="/auth/register"
               element={
                 !isAuthenticated ? (
                   <Register setAuth={setAuth} />
@@ -67,10 +65,10 @@ function App() {
               }
             />
             <Route
-              path="/doctors"
+              path="/userhome/"
               element={
                 isAuthenticated ? (
-                  <Doctors setAuth={setAuth} />
+                  <UserHome setAuth={setAuth} />
                 ) : (
                   <Login setAuth={setAuth} />
                 )
