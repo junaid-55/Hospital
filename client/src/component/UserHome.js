@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import NavigationBar from "./NavigationBar";
 const UserHome = ({ setAuth }) => {
   const navigate = useNavigate();
   const handleClick = () => {
@@ -12,8 +12,13 @@ const UserHome = ({ setAuth }) => {
   //storing doctors from databse after fetching
   const [doctors, setDoctors] = useState([]);
   const doctor_data = async () => {
-    const res = await fetch("http://localhost:5000/userhome", {
+    const res = await fetch("http://localhost:5000/userhome/", {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Request-Type": "all_doctors",
+        Token: localStorage.token,
+      },
     });
     const data = await res.json(); // Call the json method
     setDoctors(data);
@@ -33,7 +38,7 @@ const UserHome = ({ setAuth }) => {
     e.preventDefault();
     try {
       const body = { name };
-      const res = await fetch("http://localhost:5000/userhome", {
+      const res = await fetch("http://localhost:5000/userhome/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,20 +61,15 @@ const UserHome = ({ setAuth }) => {
 
   return (
     <Fragment>
-      <h1 className="text-center my-5">Doctors</h1>
-
+      <NavigationBar />
       {/* search bar on top */}
       <nav
-        class="navbar navbar-light bg-light justify-content-between my-5"
-        style={{
-          boxShadow:
-            "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
-        }}
+        className="navbar justify-content-between"
+        style={{ backgroundColor: "#e3f2fd" }}
       >
-        <a class="navbar-brand">Available Doctors</a>
-        <form class="form-inline d-flex" onSubmit={search}>
+        <form className="flex ml-auto  pr-6 " onSubmit={search}>
           <input
-            class="form-control mr-sm-2"
+            className="form-control mr-sm-2"
             type="search"
             name="name"
             value={name}
@@ -77,14 +77,16 @@ const UserHome = ({ setAuth }) => {
             placeholder="Search"
             aria-label="Search"
           />
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+          <button
+            className="btn btn-outline-success my-2 my-sm-0"
+            type="submit"
+          >
             Search
           </button>
         </form>
       </nav>
-
       {/* mapping of available doctors in card view html */}
-      <div class="row">
+      <div className="row my-5 container ">
         {doctors.map((doctor, index) => (
           <div key={index} class="col-md-4 mb-4">
             <div class="card">
@@ -92,17 +94,12 @@ const UserHome = ({ setAuth }) => {
                 <h5 class="card-title">{doctor.name}</h5>
                 <p class="card-text">Doctor ID: {doctor.id}</p>
                 <p class="card-text">{doctor.email}</p>
-                <button class="btn btn-success">Appointment</button>
+                <button class="btn btn-secondary">Appointment</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-
-      {/* logout button for going back into login page */}
-      <button className="btn btn-danger btn-block" onClick={handleClick}>
-        logout
-      </button>
     </Fragment>
   );
 };

@@ -1,32 +1,63 @@
-import { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-const user = {
-  name: "Tom Cook",
-  email: "tom@example.com",
-};
-const navigation = [
-  { name: "Dashboard", href: "/home", current: true },
-  { name: "Team", href: "team", current: false },
-  { name: "Projects", href: "#", current: false },
-  { name: "Calendar", href: "#", current: false },
-  { name: "Reports", href: "#", current: false },
-];
-const userNavigation = [
-  { name: "Your Profile", href: "#" },
-  { name: "Settings", href: "#" },
-  { name: "Sign out", href: "#" },
-];
+const NavigationBar = () => {
+  const navigation = [
+    { name: "Home", href: "/home", current: true },
+    { name: "Team", href: "team", current: false },
+    { name: "Surgery", href: "/surgery", current: false },
+    { name: "Calendar", href: "#", current: false },
+    { name: "Reports", href: "#", current: false },
+  ];
+  const userNavigation = [
+    {
+      name: "Your Profile",
+      href: "#",
+      onClick: () => {
+        console.log("Your Profile clicked");
+      },
+    },
+    {
+      name: "Sign out",
+      href: "/auth/login",
+      onClick: () => {
+        localStorage.clear();
+        window.location.reload();
+      },
+    },
+  ];
+  //   when logged in i want to change the user email and name?
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+  });
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+  const getUser = async () => {
+    const res = await fetch("http://localhost:5000/userhome/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "request-type": "user_info", // Replace "your_value_here" with the actual value
+        token: localStorage.token, // Assuming you want to include an authorization token
+      },
+    });
+    const user_data = await res.json();
+    setUser(user_data);
+    console.log(user_data);
+  };
 
-export default function Example() {
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(" ");
+  }
+
   return (
-    <>
-      <div className="min-h-full">
+    <Fragment>
+      <div className="min-h-full ">
         <Disclosure as="nav" className="bg-gray-800">
           {({ open }) => (
             <>
@@ -63,6 +94,14 @@ export default function Example() {
                         <span className="sr-only">View notifications</span>
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
+                      <div className="my-0">
+                        <div className="text-base font-medium leading-none text-white">
+                          {user.name}
+                        </div>
+                        <div className="text-sm font-medium leading-none text-gray-400">
+                          {user.email}
+                        </div>
+                      </div>
 
                       {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
@@ -72,16 +111,16 @@ export default function Example() {
                             <span className="sr-only">Open user menu</span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
+                              fill="white"
                               viewBox="0 0 24 24"
                               stroke-width="1.5"
                               stroke="currentColor"
-                              className="w-8 h-8 rounded-full"
+                              class="w-14 h-14"
                             >
                               <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
                               />
                             </svg>
                           </Menu.Button>
@@ -96,7 +135,7 @@ export default function Example() {
                           leaveTo="transform opacity-0 scale-95"
                         >
                           <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            {userNavigation.map((item) => (
+                            {/* {userNavigation.map((item) => (
                               <Menu.Item key={item.name}>
                                 {({ active }) => (
                                   <a
@@ -108,6 +147,22 @@ export default function Example() {
                                   >
                                     {item.name}
                                   </a>
+                                )}
+                              </Menu.Item>
+                            ))} */}
+                            {userNavigation.map((item, index) => (
+                              <Menu.Item key={item.name}>
+                                {({ active }) => (
+                                  <button
+                                    key={index}
+                                    onClick={item.onClick}
+                                    className={classNames(
+                                      active ? "bg-gray-100" : "",
+                                      "block px-4 py-2 text-sm text-gray-700"
+                                    )}
+                                  >
+                                    {item.name}
+                                  </button>
                                 )}
                               </Menu.Item>
                             ))}
@@ -158,17 +213,16 @@ export default function Example() {
                 </div>
                 <div className="border-t border-gray-700 pb-3 pt-4">
                   <div className="flex items-center px-5">
-                    <div className="flex-shrink-0 +" fill = 'none'>
+                    <div className="flex-shrink-0 + bg-white" fill="none">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
-                        fill="trabsparent"
+                        fill-transparent="false"
                         stroke="white"
-                        // dis
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        class="w-6 h-6"
+                        class="w-14 h-14"
                       >
                         <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
                       </svg>
@@ -191,7 +245,7 @@ export default function Example() {
                     </button>
                   </div>
                   <div className="mt-3 space-y-1 px-2">
-                    {userNavigation.map((item) => (
+                    {/* {userNavigation.map((item) => (
                       <Disclosure.Button
                         key={item.name}
                         as="a"
@@ -200,6 +254,15 @@ export default function Example() {
                       >
                         {item.name}
                       </Disclosure.Button>
+                    ))} */}
+                    {userNavigation.map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={item.onClick}
+                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
+                      >
+                        {item.name}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -207,20 +270,9 @@ export default function Example() {
             </>
           )}
         </Disclosure>
-
-        <header className="bg-white shadow">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Dashboard
-            </h1>
-          </div>
-        </header>
-        <main>
-          <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-            {/* Your content */}
-          </div>
-        </main>
       </div>
-    </>
+    </Fragment>
   );
-}
+};
+
+export default NavigationBar;

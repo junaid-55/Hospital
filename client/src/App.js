@@ -42,7 +42,7 @@ function App() {
 
   return (
     <Fragment>
-      <div className="container">
+      <div>
         <Router>
           <Routes>
             <Route
