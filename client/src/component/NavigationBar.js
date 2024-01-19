@@ -1,12 +1,14 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useLocation } from 'react-router-dom';
 
 const NavigationBar = () => {
+  const location = useLocation();
   const navigation = [
-    { name: "Home", href: "/home", current: true },
-    { name: "Team", href: "team", current: false },
-    { name: "Surgery", href: "/surgery", current: false },
+    { name: "Home", href: "/userhome", current: location.pathname === "/userhome" },
+    { name: "Lab Test", href: "/tests", current: location.pathname === "/tests" },
+    { name: "Surgery", href: "/surgeries", current: location.pathname === "/surgeries" },
     { name: "Calendar", href: "#", current: false },
     { name: "Reports", href: "#", current: false },
   ];
