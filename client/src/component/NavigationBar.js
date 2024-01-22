@@ -1,15 +1,32 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from "react-router-dom";
 
-const NavigationBar = () => {
+const NavigationBar = ({ setAuth }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const navigation = [
-    { name: "Home", href: "/userhome", current: location.pathname === "/userhome" },
-    { name: "Lab Test", href: "/tests", current: location.pathname === "/tests" },
-    { name: "Surgery", href: "/surgeries", current: location.pathname === "/surgeries" },
-    { name: "Calendar", href: "#", current: false },
+    {
+      name: "Home",
+      href: "/userhome",
+      current: location.pathname === "/userhome",
+    },
+    {
+      name: "Lab Test",
+      href: "/tests",
+      current: location.pathname === "/tests",
+    },
+    {
+      name: "Surgery",
+      href: "/surgeries",
+      current: location.pathname === "/surgeries",
+    },
+    {
+      name: "Appointment",
+      href: "/userhome/appointments",
+      current: location.pathname === "/userhome/appointments",
+    },
     { name: "Reports", href: "#", current: false },
   ];
   const userNavigation = [
@@ -25,7 +42,8 @@ const NavigationBar = () => {
       href: "/auth/login",
       onClick: () => {
         localStorage.clear();
-        window.location.reload();
+        setAuth(false);
+        navigate("/auth/login");
       },
     },
   ];
@@ -40,8 +58,8 @@ const NavigationBar = () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "request-type": "user_info", // Replace "your_value_here" with the actual value
-        token: localStorage.token, // Assuming you want to include an authorization token
+        "request-type": "user_info", 
+        token: localStorage.token, 
       },
     });
     const user_data = await res.json();
@@ -101,7 +119,7 @@ const NavigationBar = () => {
                           {user.name}
                         </div>
                         <div className="text-sm font-medium leading-none text-gray-400">
-                          {user.email}
+                          {user.gmail}
                         </div>
                       </div>
 
@@ -234,7 +252,7 @@ const NavigationBar = () => {
                         {user.name}
                       </div>
                       <div className="text-sm font-medium leading-none text-gray-400">
-                        {user.email}
+                        {user.gmail}
                       </div>
                     </div>
                     <button
@@ -247,16 +265,6 @@ const NavigationBar = () => {
                     </button>
                   </div>
                   <div className="mt-3 space-y-1 px-2">
-                    {/* {userNavigation.map((item) => (
-                      <Disclosure.Button
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                      >
-                        {item.name}
-                      </Disclosure.Button>
-                    ))} */}
                     {userNavigation.map((item, index) => (
                       <button
                         key={index}

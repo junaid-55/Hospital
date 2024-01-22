@@ -1,10 +1,10 @@
 import React from 'react'
 import NavigationBar from './NavigationBar'
 
-function LabTest() {
+function LabTest({setAuth}) {
   return (
     <div>
-      <NavigationBar />
+      <NavigationBar setAuth={setAuth} />
     </div>
   )
 }

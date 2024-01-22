@@ -17,7 +17,7 @@ const UserHome = ({ setAuth }) => {
       headers: {
         "Content-Type": "application/json",
         "Request-Type": "all_doctors",
-        Token: localStorage.token,
+        token: localStorage.token,
       },
     });
     const data = await res.json(); // Call the json method
@@ -25,6 +25,7 @@ const UserHome = ({ setAuth }) => {
   };
 
   //on using search option stores searched name
+  const [criteria,setCriteria] = useState("Name");
   const [inputs, setInputs] = useState({
     name: "",
   });
@@ -33,6 +34,10 @@ const UserHome = ({ setAuth }) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
 
+  const handleUserTypeChange = (e) => {
+    e.preventDefault();
+    setCriteria(e.target.value);
+  };
   //onSubmit function for searching doctors
   const search = async (e) => {
     e.preventDefault();
@@ -42,7 +47,8 @@ const UserHome = ({ setAuth }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Request-Type": "search", // lowercase "request-type"
+          "Request-Type": "search", 
+          "Criteria": criteria,
         },
         body: JSON.stringify(body),
       });
@@ -54,16 +60,76 @@ const UserHome = ({ setAuth }) => {
     }
   };
 
+  const handleAppointmentClick = (doctor) => {
+    console.log(doctor);
+  };
+
   //shows doctors whenever doctor is filtered by any way
   useEffect(() => {
     doctor_data();
   }, []);
 
+  // useEffect(() => {
+  //   if (name) {
+  //     search();
+  //   }
+  // }, [name]);
+
   return (
     <Fragment>
-      <NavigationBar />
+      <NavigationBar setAuth={setAuth} />
+
+      <form class="flex" onSubmit={search}>
+        <label
+          for="search-dropdown"
+          class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
+        >
+          Your Email
+        </label>
+
+        <select
+          name="user_type"
+          class="w-40 flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-s-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+          onChange={handleUserTypeChange}
+        >
+          <option>Name</option>
+          <option>Department</option>
+        </select>
+
+        <div class="relative flex-grow">
+          <input
+            type="search"
+            name="name"
+            value={name}
+            onChange={(e) => onChange(e)}
+            class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-e-lg border-s-gray-50 border-s-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+            placeholder="Search Mockups, Logos, Design Templates..."
+          />
+          <button
+            type="submit"
+            class="w-20  absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-blue-700 rounded-e-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            <svg
+              class="w-4 h-4"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 20 20"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+              />
+            </svg>
+            <span class="sr-only">Search</span>
+          </button>
+        </div>
+      </form>
       {/* search bar on top */}
-      <nav
+      {/* <nav
         className="navbar justify-content-between"
         style={{ backgroundColor: "#e3f2fd" }}
       >
@@ -84,17 +150,22 @@ const UserHome = ({ setAuth }) => {
             Search
           </button>
         </form>
-      </nav>
+      </nav> */}
       {/* mapping of available doctors in card view html */}
       <div className="row my-5 container ">
         {doctors.map((doctor, index) => (
           <div key={index} class="col-md-4 mb-4">
-            <div class="card">
+            <div class="card dark:bg-slate-300">
               <div class="card-body">
                 <h5 class="card-title">{doctor.name}</h5>
-                <p class="card-text">Doctor ID: {doctor.id}</p>
-                <p class="card-text">{doctor.email}</p>
-                <button class="btn btn-secondary">Appointment</button>
+                <h6 class="card-text">{doctor.department_title}</h6>
+                <p class="card-text">{doctor.schedule}</p>
+                <button
+                  class="btn btn-success"
+                  onClick={() => handleAppointmentClick(doctor)}
+                >
+                  Appointment
+                </button>
               </div>
             </div>
           </div>
