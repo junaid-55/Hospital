@@ -2,12 +2,12 @@ import React, { Fragment, useEffect, useState } from "react";
 import "./App.css";
 import LabTest from "./component/LabTest";
 import Login from "./component/Login";
-import PateintAppointment from "./component/PateintAppointment";
+import PateintAppointment from "./component/PatientAppointment";
 import ProtectedPage from "./component/ProtectedPage";
 import Register from "./component/Register";
 import Surgery from "./component/Surgery";
-import Test from "./component/Test";
 import UserHome from "./component/UserHome";
+import Check from "./component/Check";
 
 import {
   Route,
@@ -90,14 +90,14 @@ function App() {
               }
             />
             <Route 
-            path="/userhome/appointments"
+            path="/appointments"
             element={
               <ProtectedPage isAuthenticated={isAuthenticated}>
                 <PateintAppointment setAuth={setAuth} />
               </ProtectedPage> 
             }
             />
-            <Route path="/test" element={<Test/>} />
+            <Route path="/check" element={<Check/>} />
           </Routes>
         </Router>
       </div>

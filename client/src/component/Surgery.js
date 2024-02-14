@@ -29,7 +29,6 @@ const Surgery = () => {
       <NavigationBar />
       <div className="container">
         <div className="py-4">
-          <h1>Surgeries</h1>
           <table class="table border shadow">
             <thead class="thead-dark">
               <tr>
@@ -52,7 +51,7 @@ const Surgery = () => {
                     >
                       View
                     </Link>
-                    <Link
+                    {/* <Link
                       class="btn btn-outline-primary mr-2"
                       to={`/userhome/surgery/edit/${surgery.name}`}
                     >
@@ -63,7 +62,7 @@ const Surgery = () => {
                       // onClick={() => deleteSurgery(surgery.name)}
                     >
                       Delete
-                    </Link>
+                    </Link> */}
                   </td>
                 </tr>
               ))}

@@ -11,13 +11,13 @@ router.get("", authorization, async (req, res) => {
     if (type && type === "user_info") {
       const id = req.user;
       const user = await pool.query(
-        "SELECT name,gmail FROM person WHERE person_id = $1",
+        "SELECT first_name,email FROM patient WHERE patient_id = $1",
         [id]
       );
       return res.json(user.rows[0]);
     } else if (type && type === "all_doctors") {
       const user = await pool.query(
-        "SELECT doctor_id, name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id)"
+        "SELECT doctor_id, first_name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id)"
       );
       return res.json(user.rows);
     }
@@ -35,13 +35,13 @@ router.post("", async (req, res) => {
         console.log("here");
         const { name } = req.body;
         user = await pool.query(
-          "SELECT doctor_id, name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id) WHERE UPPER(name) LIKE $1 ",
+          "SELECT doctor_id, first_name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id) WHERE UPPER(first_name) LIKE $1 ",
           [`%${name.toUpperCase()}%`]
         );
       } else {
         const { name } = req.body;
         user = await pool.query(
-          "SELECT doctor_id, name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id) WHERE UPPER(department_title) LIKE $1 ",
+          "SELECT doctor_id, first_name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id) WHERE UPPER(department_title) LIKE $1 ",
           [`%${name.toUpperCase()}%`]
         );
       }

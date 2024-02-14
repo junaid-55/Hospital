@@ -24,8 +24,8 @@ const NavigationBar = ({ setAuth }) => {
     },
     {
       name: "Appointment",
-      href: "/userhome/appointments",
-      current: location.pathname === "/userhome/appointments",
+      href: "/appointments",
+      current: location.pathname === "/appointments",
     },
     { name: "Reports", href: "#", current: false },
   ];
@@ -47,9 +47,10 @@ const NavigationBar = ({ setAuth }) => {
       },
     },
   ];
-  //   when logged in i want to change the user email and name?
+  
+  //when logged in i want to change the user email and name?
   const [user, setUser] = useState({
-    name: "",
+    first_name: "",
     email: "",
   });
 
@@ -116,10 +117,10 @@ const NavigationBar = ({ setAuth }) => {
                       </button>
                       <div className="my-0">
                         <div className="text-base font-medium leading-none text-white">
-                          {user.name}
+                          {user.first_name}
                         </div>
                         <div className="text-sm font-medium leading-none text-gray-400">
-                          {user.gmail}
+                          {user.email}
                         </div>
                       </div>
 
@@ -155,21 +156,6 @@ const NavigationBar = ({ setAuth }) => {
                           leaveTo="transform opacity-0 scale-95"
                         >
                           <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            {/* {userNavigation.map((item) => (
-                              <Menu.Item key={item.name}>
-                                {({ active }) => (
-                                  <a
-                                    href={item.href}
-                                    className={classNames(
-                                      active ? "bg-gray-100" : "",
-                                      "block px-4 py-2 text-sm text-gray-700"
-                                    )}
-                                  >
-                                    {item.name}
-                                  </a>
-                                )}
-                              </Menu.Item>
-                            ))} */}
                             {userNavigation.map((item, index) => (
                               <Menu.Item key={item.name}>
                                 {({ active }) => (
@@ -249,10 +235,10 @@ const NavigationBar = ({ setAuth }) => {
                     </div>
                     <div className="ml-3">
                       <div className="text-base font-medium leading-none text-white">
-                        {user.name}
+                        {user.first_name}
                       </div>
                       <div className="text-sm font-medium leading-none text-gray-400">
-                        {user.gmail}
+                        {user.email}
                       </div>
                     </div>
                     <button

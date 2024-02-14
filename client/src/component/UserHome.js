@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "./NavigationBar";
+import Swal from "sweetalert2";
 const UserHome = ({ setAuth }) => {
   const navigate = useNavigate();
   const handleClick = () => {
@@ -25,7 +26,7 @@ const UserHome = ({ setAuth }) => {
   };
 
   //on using search option stores searched name
-  const [criteria,setCriteria] = useState("Name");
+  const [criteria, setCriteria] = useState("Name");
   const [inputs, setInputs] = useState({
     name: "",
   });
@@ -47,8 +48,8 @@ const UserHome = ({ setAuth }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Request-Type": "search", 
-          "Criteria": criteria,
+          "Request-Type": "search",
+          Criteria: criteria,
         },
         body: JSON.stringify(body),
       });
@@ -60,8 +61,28 @@ const UserHome = ({ setAuth }) => {
     }
   };
 
-  const handleAppointmentClick = (doctor) => {
-    console.log(doctor);
+  const handleAppointmentClick = async (doctor) => {
+    try {
+      console.log(doctor);
+      const body = { doctor };
+      const res = await fetch("http://localhost:5000/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Request-Type": "appointment",
+          token: localStorage.token,
+        },
+        body: JSON.stringify(body),
+      });
+      console.log(res);
+      Swal.fire({
+        icon: "success",
+        title: "Congrats...",
+        text: "Appointment successful...",
+      });
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   //shows doctors whenever doctor is filtered by any way
@@ -103,7 +124,7 @@ const UserHome = ({ setAuth }) => {
             value={name}
             onChange={(e) => onChange(e)}
             class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-e-lg border-s-gray-50 border-s-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-            placeholder="Search Mockups, Logos, Design Templates..."
+            placeholder="Search doctors"
           />
           <button
             type="submit"
@@ -129,35 +150,13 @@ const UserHome = ({ setAuth }) => {
         </div>
       </form>
       {/* search bar on top */}
-      {/* <nav
-        className="navbar justify-content-between"
-        style={{ backgroundColor: "#e3f2fd" }}
-      >
-        <form className="flex ml-auto  pr-6 " onSubmit={search}>
-          <input
-            className="form-control mr-sm-2"
-            type="search"
-            name="name"
-            value={name}
-            onChange={(e) => onChange(e)}
-            placeholder="Search"
-            aria-label="Search"
-          />
-          <button
-            className="btn btn-outline-success my-2 my-sm-0"
-            type="submit"
-          >
-            Search
-          </button>
-        </form>
-      </nav> */}
       {/* mapping of available doctors in card view html */}
-      <div className="row my-5 container ">
+      {/* <div className="row my-5 container "> 
         {doctors.map((doctor, index) => (
           <div key={index} class="col-md-4 mb-4">
             <div class="card dark:bg-slate-300">
               <div class="card-body">
-                <h5 class="card-title">{doctor.name}</h5>
+                <h5 class="card-title">{doctor.first_name}</h5>
                 <h6 class="card-text">{doctor.department_title}</h6>
                 <p class="card-text">{doctor.schedule}</p>
                 <button
@@ -168,6 +167,21 @@ const UserHome = ({ setAuth }) => {
                 </button>
               </div>
             </div>
+          </div>
+        ))}
+      </div> */}
+      <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {doctors.map((doctor, index) => (
+          <div class="p-6 rounded-md shadow-sm cursor-pointer bg-gradient-to-r from-violet-100 to-indigo-100 hover:from-violet-200 hover:to-indigo-200 border-violet-200 border-2 hover:border-violet-300 transition-colors duration-300">
+            <h6 class="text-xl font-semibold mb-4">{doctor.first_name}</h6>
+            <p class="text-xl font-semibold mb-4">{doctor.department_title}</p>
+            <p class="text-gray-700">{doctor.schedule}</p>
+            <button
+              class="btn btn-success mt-2"
+              onClick={() => handleAppointmentClick(doctor)}
+            >
+              Appointment
+            </button>
           </div>
         ))}
       </div>
