@@ -1,41 +1,40 @@
 import React, { Fragment, useEffect, useState } from "react";
 import "./App.css";
+import LabTest from "./component/LabTest";
+import Login from "./component/Login";
+import PateintAppointment from "./component/PatientAppointment";
+import ProtectedPage from "./component/ProtectedPage";
+import Register from "./component/Register";
+import Surgery from "./component/Surgery";
+import UserHome from "./component/UserHome";
+import Check from "./component/Check";
 
 import {
-  BrowserRouter as Router,
-  Routes,
   Route,
-  useNavigate,
-  Link,
-  json,
+  BrowserRouter as Router,
+  Routes
 } from "react-router-dom";
 
-import Login from "./component/Login";
-import Register from "./component/Register";
-import Doctors from "./component/Doctors";
 
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
-   async function check_Authenticated (){
+  async function check_Authenticated() {
     try {
-      console.log('trying');
-      console.log(localStorage.token);
       const res = await fetch("http://localhost:5000/auth/is-verify", {
         method: "GET",
         headers: { token: localStorage.token },
       });
 
       const parseRes = await res.json();
-      console.log(parseRes);
       parseRes === true ? setAuthenticated(true) : setAuthenticated(false);
     } catch (err) {
       console.error(err.message);
     }
-  };
+  }
 
-  useEffect(()=>{
+  useEffect(() => {
     check_Authenticated();
-  },[]);
+  }, []);
 
   const setAuth = (bool) => {
     setAuthenticated(bool);
@@ -43,21 +42,21 @@ function App() {
 
   return (
     <Fragment>
-      <div className="container">
+      <div>
         <Router>
           <Routes>
             <Route
-              path="auth/login"
+              path="/auth/login"
               element={
                 !isAuthenticated ? (
                   <Login setAuth={setAuth} />
                 ) : (
-                  <Doctors setAuth={setAuth} />
+                  <UserHome setAuth={setAuth} />
                 )
               }
             />
             <Route
-              path="auth/register"
+              path="/auth/register"
               element={
                 !isAuthenticated ? (
                   <Register setAuth={setAuth} />
@@ -67,15 +66,38 @@ function App() {
               }
             />
             <Route
-              path="/doctors"
+              path="/userhome/"
               element={
-                isAuthenticated ? (
-                  <Doctors setAuth={setAuth} />
-                ) : (
-                  <Login setAuth={setAuth} />
-                )
+                <ProtectedPage isAuthenticated={isAuthenticated}>
+                  <UserHome setAuth={setAuth} />
+                </ProtectedPage>
               }
             />
+            <Route
+              path="/surgeries"
+              element={
+                <ProtectedPage isAuthenticated={isAuthenticated}>
+                  <Surgery setAuth={setAuth}/>
+                </ProtectedPage>
+              }
+            />
+            <Route
+              path="/tests"
+              element={
+                <ProtectedPage isAuthenticated={isAuthenticated}>
+                  <LabTest setAuth={setAuth}/>
+                </ProtectedPage>
+              }
+            />
+            <Route 
+            path="/appointments"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <PateintAppointment setAuth={setAuth} />
+              </ProtectedPage> 
+            }
+            />
+            <Route path="/check" element={<Check/>} />
           </Routes>
         </Router>
       </div>
