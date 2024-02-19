@@ -5,15 +5,16 @@ const authorization = require("../middleware/authorization");
 router.post("", authorization, async (req, res) => {
   try {
     console.log("request coming from /appointments");
-    const person_id = req.user;
+    const patient_id = req.user;
     const type = 'consultation';
     const {doctor} = req.body;
+    console.log(doctor);
     const patient = await pool.query(
-      "INSERT INTO appointment (name,person_id,doctor_id,contact_no,appointment_date,type) VALUES ((SELECT name FROM person where person_id = $1),$2,$3,$4,$5,$6) RETURNING *;",
-      [person_id,person_id, doctor.doctor_id,doctor.contact_no, new Date(), type]
+      "INSERT INTO appointment (doctor_id,patient_id,type,contact_no,appointment_date) VALUES ($1,$2,$3,$4,$5) RETURNING *;",
+      [doctor.doctor_id,patient_id,type,doctor.contact_no, new Date()]
     );
 
-    console.log(patient);
+    console.log(patient.rows[0]);
     return res.json(patient.rows[0]);
   } catch (err) {
     console.log(err.message);
@@ -28,9 +29,10 @@ router.get("", authorization, async (req, res) => {
     console.log(type, id);
     if (type === "all_appointment") {
       const appointments = await pool.query(
-        "SELECT D.name doctor_name,A.type type,A.appointment_date date, A.contact_no contact_no  FROM appointment A JOIN doctor D USING(doctor_id) WHERE person_id = $1;",
+        "SELECT distinct (D.first_name||' '|| D.last_name) doctor_name,A.type type,A.appointment_date date, A.contact_no contact_no  FROM appointment A JOIN doctor D USING(doctor_id) WHERE patient_id = $1;",
         [id]
       );
+      console.log(appointments.rows);
       return res.json(appointments.rows);
     }
 

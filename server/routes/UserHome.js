@@ -17,7 +17,7 @@ router.get("", authorization, async (req, res) => {
       return res.json(user.rows[0]);
     } else if (type && type === "all_doctors") {
       const user = await pool.query(
-        "SELECT doctor_id, first_name,department_title,experience,schedule,consultation_fee FROM doctor JOIN department USING(department_id)"
+        "SELECT doctor_id, first_name,department_title,experience,schedule,consultation_fee,doctor.contact_no FROM doctor JOIN department USING(department_id)"
       );
       return res.json(user.rows);
     }

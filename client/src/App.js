@@ -8,7 +8,7 @@ import Register from "./component/Register";
 import Surgery from "./component/Surgery";
 import UserHome from "./component/UserHome";
 import Check from "./component/Check";
-
+import DoctorHome from "./component/doctor/DoctorHome";
 import {
   Route,
   BrowserRouter as Router,
@@ -97,8 +97,20 @@ function App() {
               </ProtectedPage> 
             }
             />
+            <Route
+              path="/doctorhome"
+              element={
+                !isAuthenticated ? (
+                  <DoctorHome setAuth={setAuth} />
+                ) : (
+                  <Login setAuth={setAuth} />
+                )
+              }
+            />
             <Route path="/check" element={<Check/>} />
+
           </Routes>
+          
         </Router>
       </div>
     </Fragment>

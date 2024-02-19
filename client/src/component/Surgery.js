@@ -1,22 +1,21 @@
-import React,{ useState,useEffect } from 'react'
-import NavigationBar from './NavigationBar'
+import React, { useState, useEffect } from "react";
+import NavigationBar from "./NavigationBar";
 import { Link } from "react-router-dom";
-const Surgery = () => {
+const Surgery = ( {setAuth}) => {
   const [surgeries, setSurgeries] = useState([]);
   const surgery_data = async () => {
-    try{
+    try {
       const res = await fetch("http://localhost:5000/surgeries/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Request-Type": "all_surgery",
-           token: localStorage.token,
+          token: localStorage.token,
         },
       });
-    const data = await res.json(); // Call the json method
-    setSurgeries(data);
-    console.log(data);
-    }catch(err) {
+      const data = await res.json(); // Call the json method
+      setSurgeries(data);
+    } catch (err) {
       console.error(err.message);
     }
   };
@@ -26,10 +25,10 @@ const Surgery = () => {
 
   return (
     <div>
-      <NavigationBar />
+      <NavigationBar setAuth={setAuth}/>
       <div className="container">
         <div className="py-4">
-          <table class="table border shadow">
+          {/* <table class="table border shadow">
             <thead class="thead-dark">
               <tr>
                 <th scope="col">#</th>
@@ -51,7 +50,7 @@ const Surgery = () => {
                     >
                       View
                     </Link>
-                    {/* <Link
+                   <Link
                       class="btn btn-outline-primary mr-2"
                       to={`/userhome/surgery/edit/${surgery.name}`}
                     >
@@ -62,16 +61,34 @@ const Surgery = () => {
                       // onClick={() => deleteSurgery(surgery.name)}
                     >
                       Delete
-                    </Link> */}
+                    </Link> 
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table> */}
+          <div className="row my-5 container ">
+            {surgeries.map((surgery, index) => (
+              <div key={index} class="col-md-4 mb-4">
+                <div class="card dark:bg-slate-300">
+                  <div class="card-body">
+                    <h5 class="card-title">{surgery.name}</h5>
+                    <h6 class="card-text">{surgery.type}</h6>
+                    <p class="card-text">{surgery.price}</p>
+                    <button
+                      class="btn btn-success"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Surgery
+export default Surgery;

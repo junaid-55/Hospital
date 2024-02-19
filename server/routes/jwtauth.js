@@ -7,7 +7,8 @@ const info_validation = require("../middleware/info_validation");
 router.post("/register", info_validation, async (req, res) => {
   try {
     console.log("request coming from auth/register");
-    const { firstName,lastName, email, password,contact, user_type } = req.body;
+    const { firstName, lastName, email, password, contact, user_type } =
+      req.body;
     console.log(user_type, firstName, email);
     let exist_user;
     let user;
@@ -23,16 +24,15 @@ router.post("/register", info_validation, async (req, res) => {
       //   );
       // } else return res.status(401);
     } else if (user_type === "patient") {
-      exist_user = await pool.query(
-        "SELECT * FROM patient WHERE email = $1",
-        [email]
-      );
+      exist_user = await pool.query("SELECT * FROM patient WHERE email = $1", [
+        email,
+      ]);
       console.log("details");
       console.log(exist_user.rows);
       if (exist_user.rows.length === 0) {
         user = await pool.query(
           "INSERT INTO patient (first_name,last_name,email,contact_no,password) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-          [firstName,lastName, email,contact, password]
+          [firstName, lastName, email, contact, password]
         );
       } else return res.status(401);
     }
@@ -52,14 +52,17 @@ router.post("/login", info_validation, async (req, res) => {
     const { firstName, email, password, user_type } = req.body;
     let user;
     if (user_type === "Doctor") {
-      user = await pool.query("SELECT * FROM doctor where first_name = ( $1 )", [
-        firstName,
-      ]);
+      user = await pool.query(
+        "SELECT * FROM doctor where first_name = ( $1 )",
+        [firstName]
+      );
+      if (user.rows.length === 0) return res.status(401).send(user.rows);
+      const token = jwtGenerator(user.rows[0].doctor_id);
+      return res.status(200).json({ token });
     } else if (user_type === "Patient") {
       user = await pool.query("SELECT * FROM patient where email = ( $1 )", [
         email,
       ]);
-
       if (user.rows.length === 0) return res.status(401).send(user.rows);
       const token = jwtGenerator(user.rows[0].patient_id);
       return res.status(200).json({ token });

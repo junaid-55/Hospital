@@ -56,6 +56,10 @@ const Login = ({ setAuth }) => {
         });
       }
 
+      if(user_type === "Doctor"){
+        navigate("/doctorhome");
+        return;
+      }
       // storing jwt token during login if valid
       const parseRes = await response.json();
       localStorage.setItem("token", parseRes.token);
