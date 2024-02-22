@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import NavigationBar from '../NavigationBar'
+import NavigationBar from './DoctorNavigationBar'
 function DoctorHome({setAuth}) {
   return (
     <Fragment>

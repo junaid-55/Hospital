@@ -1,5 +1,5 @@
 import React, { Fragment, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 // setAuth is props which triggers the authentication if user was valid
@@ -57,6 +57,8 @@ const Login = ({ setAuth }) => {
       }
 
       if(user_type === "Doctor"){
+        const parseRes = await response.json();
+        localStorage.setItem("token", parseRes.token);
         navigate("/doctorhome");
         return;
       }

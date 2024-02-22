@@ -1,203 +1,212 @@
--- Drop the database if it exists
-DROP DATABASE IF EXISTS HOSPITAL;
-
--- Create the database
-CREATE DATABASE HOSPITAL;
-
--- Connect to the database
-\c HOSPITAL;
-
--- Department table
-CREATE TABLE DEPARTMENT (
-    DEPARTMENT_ID SERIAL PRIMARY KEY,
-    DEPARTMENT_TITLE VARCHAR(50),
-    DESCRIPTION TEXT,
-    CONTACT_NO VARCHAR(14) NOT NULL
+--patient table
+CREATE TABLE patient (
+    patient_id  SERIAL PRIMARY KEY,
+    email VARCHAR(50) not null unique,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    contact_no VARCHAR(14) not null,
+    password VARCHAR(10)
+    
 );
 
--- Bed type table
-CREATE TABLE BED_TYPE (
-    BED_TYPE_ID SERIAL PRIMARY KEY,
-    TYPE_NAME VARCHAR(50),
-    DESCRIPTION TEXT
+--department table
+CREATE TABLE department (
+    department_id SERIAL PRIMARY KEY,
+    department_title VARCHAR(50),
+    description TEXT,
+    contact_no VARCHAR(14) not null
 );
 
--- Bed table
-CREATE TABLE BED (
-    BED_ID SERIAL PRIMARY KEY,
-    BED_TYPE_ID INT NOT NULL,
-    PRICE INT,
-    FOREIGN KEY (BED_TYPE_ID) REFERENCES BED_TYPE(BED_TYPE_ID)
+--doctor table
+CREATE TABLE doctor (
+    doctor_id SERIAL PRIMARY KEY,
+    department_id INT, 
+    email VARCHAR(50) not null unique,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    experience VARCHAR(50),
+    schedule VARCHAR(50),
+    title VARCHAR(50),
+    contact_no VARCHAR(14) not null,
+    consultation_fee INT,
+    FOREIGN KEY (department_id) REFERENCES department(department_id)
 );
 
--- Patient table
-CREATE TABLE PATIENT (
-    PATIENT_ID SERIAL PRIMARY KEY,
-    FIRST_NAME VARCHAR(50),
-    LAST_NAME VARCHAR(50),
-    EMAIL VARCHAR(50) NOT NULL UNIQUE,
-    CONTACT_NO VARCHAR(14) NOT NULL,
-    PASSWORD VARCHAR(10)
+--prescription table
+CREATE TABLE prescription(
+    prescription_id SERIAL PRIMARY KEY,
+    disease_name VARCHAR(250),
+    date DATE,
+    drug_name_with_time varchar(250),
+    advice TEXT
 );
 
--- Doctor table
-CREATE TABLE DOCTOR (
-    DOCTOR_ID SERIAL PRIMARY KEY,
-    DEPARTMENT_ID INT,
-    FIRST_NAME VARCHAR(50),
-    LAST_NAME VARCHAR(50),
-    EXPERIENCE VARCHAR(50),
-    SCHEDULE VARCHAR(50),
-    TITLE VARCHAR(50),
-    CONTACT_NO VARCHAR(14) NOT NULL,
-    CONSULTATION_FEE INT,
-    FOREIGN KEY (DEPARTMENT_ID) REFERENCES DEPARTMENT(DEPARTMENT_ID)
+--appointment table
+CREATE TABLE appointment (
+    appointment_id SERIAL PRIMARY KEY,
+    doctor_id INT, 
+    patient_id INT, 
+    out_patient_id INT,
+    prescription_id INT,
+    type varchar(50),
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    contact_no VARCHAR(14) not null,
+    appointment_date DATE,
+    Foreign key (prescription_id) references prescription(prescription_id),
+    FOREIGN KEY (doctor_id) REFERENCES doctor(doctor_id),
+    FOREIGN KEY (patient_id) REFERENCES patient(patient_id)
 );
 
--- Prescription table
-CREATE TABLE PRESCRIPTION(
-    PRESCRIPTION_ID SERIAL PRIMARY KEY,
-    DISEASE_NAME VARCHAR(250),
-    DATE DATE,
-    DRUG_NAME_WITH_TIME VARCHAR(250),
-    ADVICE TEXT
+
+--visit table
+CREATE TABLE visit (
+    visit_id SERIAL PRIMARY KEY,
+    doctor_id INT, 
+    prescription_id INT,
+    in_patient_id INT,
+    date DATE,
+    foreign key (prescription_id) references prescription(prescription_id),
+    foreign key (in_patient_id) references in_patient(in_patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES doctor(doctor_id)
 );
 
--- Appointment table
-CREATE TABLE APPOINTMENT (
-    APPOINTMENT_ID SERIAL PRIMARY KEY,
-    DOCTOR_ID INT NOT NULL,
-    PATIENT_ID INT NOT NULL,
-    PRESCRIPTION_ID INT,
-    TYPE VARCHAR(50),
-    CONTACT_NO VARCHAR(14) NOT NULL,
-    APPOINTMENT_DATE DATE,
-    FOREIGN KEY (PRESCRIPTION_ID) REFERENCES PRESCRIPTION(PRESCRIPTION_ID),
-    FOREIGN KEY (DOCTOR_ID) REFERENCES DOCTOR(DOCTOR_ID),
-    FOREIGN KEY (PATIENT_ID) REFERENCES PATIENT(PATIENT_ID)
+--out_patient table
+CREATE TABLE out_patient (
+    out_patient_id SERIAL PRIMARY KEY,
+    appointment_id INT,  
+    contact_no VARCHAR(14),
+    FOREIGN KEY (appointment_id) REFERENCES appointment(appointment_id)
 );
 
--- Visit table
-CREATE TABLE VISIT (
-    VISIT_ID SERIAL PRIMARY KEY,
-    DOCTOR_ID INT,
-    PRESCRIPTION_ID INT,
-    IN_PATIENT_ID INT,
-    DATE DATE,
-    FOREIGN KEY (PRESCRIPTION_ID) REFERENCES PRESCRIPTION(PRESCRIPTION_ID),
-    FOREIGN KEY (IN_PATIENT_ID) REFERENCES IN_PATIENT(IN_PATIENT_ID),
-    FOREIGN KEY (DOCTOR_ID) REFERENCES DOCTOR(DOCTOR_ID)
+--in_patient table
+CREATE TABLE in_patient (
+    in_patient_id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    appointment_id INT,
+    contact_no VARCHAR(20),
+    admit_date DATE,
+    discharge_date DATE,
+    foreign key (appointment_id) references appointment(appointment_id)
 );
 
--- Outpatient table
-CREATE TABLE OUT_PATIENT (
-   OUT_PATIENT_ID SERIAL PRIMARY KEY,
-   APPOINTMENT_ID INT,
-   CONTACT_NO VARCHAR(14),
-   FOREIGN KEY (APPOINTMENT_ID) REFERENCES APPOINTMENT(APPOINTMENT_ID)
+--bed_type table
+CREATE TABLE bed_type (
+    bed_type_id SERIAL PRIMARY KEY,
+    type_name VARCHAR(50),
+    description TEXT   
 );
 
--- Inpatient table
-CREATE TABLE IN_PATIENT (
-    IN_PATIENT_ID SERIAL PRIMARY KEY,
-    NAME VARCHAR(255),
-    VISIT_ID INT,
-    APPOINTMENT_ID INT,
-    CONTACT_NO VARCHAR(20),
-    ADMIT_DATE DATE,
-    DISCHARGE_DATE DATE,
-    FOREIGN KEY (APPOINTMENT_ID) REFERENCES APPOINTMENT(APPOINTMENT_ID),
-    FOREIGN KEY (VISIT_ID) REFERENCES VISIT(VISIT_ID)
+
+--bed table
+CREATE TABLE bed (
+    bed_id SERIAL PRIMARY KEY,
+    bed_type_id int not null,
+    price FLOAT,
+    FOREIGN key (bed_type_id) REFERENCES bed_type(bed_type_id)
 );
 
--- Surgery table
-CREATE TABLE SURGERY (
-    SURGERY_ID SERIAL PRIMARY KEY,
-    NAME VARCHAR(100),
-    TYPE VARCHAR(50),
-    ROOM_NO VARCHAR(50),
-    ROOM_NAME VARCHAR(80),
-    PRICE INT
+--bed_taken_table
+CREATE TABLE bed_taken (
+    bed_taken_id SERIAL PRIMARY KEY,
+    in_patient_id INT, 
+    bed_id INT,
+    cost FLOAT,
+    occupying_date DATE,
+    discharge_date DATE,
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id)
 );
 
--- Surgery taken table
-CREATE TABLE SURGERY_TAKEN (
-    SURGERY_TAKEN_ID SERIAL PRIMARY KEY,
-    IN_PATIENT_ID INT,
-    SURGERY_ID INT,
-    PRICE INT,
-    STATUS VARCHAR(50),
-    FOREIGN KEY (IN_PATIENT_ID) REFERENCES IN_PATIENT(IN_PATIENT_ID),
-    FOREIGN KEY (SURGERY_ID) REFERENCES SURGERY(SURGERY_ID)
+--surgery table
+CREATE TABLE surgery (
+    surgery_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    type VARCHAR(50),
+    room_no VARCHAR(50),
+    room_name VARCHAR(80),
+    price FLOAT
 );
 
--- Surgery role table
-CREATE TABLE SURGERY_ROLE (
-   ROLE_ID SERIAL PRIMARY KEY,
-   DOCTOR_ROLE VARCHAR(50),
-   FEES_PERCENTAGE INT
+--surgery_role
+CREATE TABLE surgery_role (
+    role_id SERIAL PRIMARY KEY,
+    doctor_role VARCHAR(50),
+    fees_percentage FLOAT
 );
 
--- Doctor surgery taken junction table
-CREATE TABLE DOCTOR_SURGERY_TAKEN_JUNCTION(
-    DOCTOR_ID INT,
-    SURGERY_TAKEN_ID INT,
-    FEES INT,
-    ROLE_ID INT,
-    FOREIGN KEY (DOCTOR_ID) REFERENCES DOCTOR(DOCTOR_ID),
-    FOREIGN KEY (ROLE_ID) REFERENCES SURGERY_ROLE(ROLE_ID),
-    FOREIGN KEY (SURGERY_TAKEN_ID) REFERENCES SURGERY_TAKEN(SURGERY_TAKEN_ID)
+--surgery_taken
+CREATE TABLE surgery_taken (
+    surgery_taken_id SERIAL PRIMARY KEY,
+    in_patient_id INT, 
+    surgery_id INT, 
+    price FLOAT,
+    status VARCHAR(50),
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
+    FOREIGN KEY (surgery_id) REFERENCES surgery(surgery_id)
 );
 
--- Drug table
-CREATE TABLE  DRUG(
-    DRUG_ID SERIAL PRIMARY KEY,
-    NAME VARCHAR(250),
-    TYPE VARCHAR(100),
-    DOSAGE VARCHAR(50),
-    PRICE INT
+--doctor_surgery_taken_junction
+CREATE TABLE doctor_surgery_taken_junction(
+    doctor_id INT,
+    surgery_taken_id INT,
+    fees FLOAT,
+    role_id INT,
+    FOREIGN KEY (doctor_id) REFERENCES doctor(doctor_id),
+    FOREIGN KEY (role_id) REFERENCES surgery_role(role_id),
+    FOREIGN KEY (surgery_taken_id) REFERENCES surgery_taken(surgery_taken_id)
 );
 
--- Drug taken table
-CREATE TABLE DRUG_TAKEN (
-    DRUG_TAKEN_ID SERIAL PRIMARY KEY,
-    DRUG_ID INT,
-    QUANTITY INT,
-    IN_PATIENT_ID INT,
-    PRICE INT,
-    FOREIGN KEY (DRUG_ID) REFERENCES DRUG(DRUG_ID),
-    FOREIGN KEY (IN_PATIENT_ID) REFERENCES IN_PATIENT(IN_PATIENT_ID)
+--drug table
+CREATE TABLE  drug(
+    drug_id SERIAL PRIMARY KEY,
+    name VARCHAR(250), 
+    type VARCHAR(100),
+    dosage VARCHAR(50),
+    price FLOAT
 );
 
--- Test table
-CREATE TABLE  TEST(
-    TEST_ID SERIAL PRIMARY KEY,
-    NAME VARCHAR(250),
-    TYPE VARCHAR(100),
-    PRICE INT
+--drug_taken
+CREATE TABLE drug_taken (
+    drug_taken_id SERIAL PRIMARY KEY,
+    drug_id INT, 
+    quantity INT, 
+    in_patient_id INT,
+    price FLOAT,
+    FOREIGN KEY (drug_id) REFERENCES drug(drug_id),
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id)
+
 );
 
--- Test taken table
-CREATE TABLE TEST_TAKEN (
-    TEST_TAKEN_ID SERIAL PRIMARY KEY,
-    TEST_ID INT,
-    RESULTS TEXT,
-    IN_PATIENT_ID INT,
-    OUT_PATIENT_ID INT,
-    PRICE INT,
-    FOREIGN KEY (TEST_ID) REFERENCES TEST(TEST_ID),
-    FOREIGN KEY (IN_PATIENT_ID) REFERENCES IN_PATIENT(IN_PATIENT_ID),
-    FOREIGN KEY (OUT_PATIENT_ID) REFERENCES OUT_PATIENT(OUT_PATIENT_ID)
+--test table
+CREATE TABLE  test(
+    test_id SERIAL PRIMARY KEY,
+    name VARCHAR(250), 
+    type VARCHAR(100),
+    price FLOAT
 );
 
--- Bill table
-CREATE TABLE BILL(
-    IN_PATIENT_ID INT,
-    BILL_ID SERIAL PRIMARY KEY,
-    AMOUNT INT,
-    STATUS VARCHAR(50),
-    BILL_TYPE VARCHAR(10),
-    OUT_PATIENT_ID INT,
-    FOREIGN KEY (IN_PATIENT_ID) REFERENCES IN_PATIENT(IN_PATIENT_ID),
-    FOREIGN KEY (OUT_PATIENT_ID) REFERENCES OUT_PATIENT(OUT_PATIENT_ID)
+--test_taken table
+CREATE TABLE test_taken (
+    test_taken_id SERIAL PRIMARY KEY,
+    test_id INT, 
+    results TEXT,
+    in_patient_id INT,
+    out_patient_id INT,
+    price FLOAT,
+    FOREIGN KEY (test_id) REFERENCES test(test_id),
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
+    FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
+
 );
+
+--bill table
+CREATE TABLE bill(
+    bill_id SERIAL PRIMARY KEY,
+    in_patient_id INT,
+    out_patient_id INT,
+    amount FLOAT,
+    status VARCHAR(50),
+    bill_type VARCHAR(10),
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
+    FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
+);
+

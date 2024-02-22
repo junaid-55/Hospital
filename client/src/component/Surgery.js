@@ -13,8 +13,8 @@ const Surgery = ( {setAuth}) => {
           token: localStorage.token,
         },
       });
-      const data = await res.json(); // Call the json method
-      setSurgeries(data);
+      const data = await res.json();
+      setSurgeries(data); 
     } catch (err) {
       console.error(err.message);
     }
@@ -28,45 +28,6 @@ const Surgery = ( {setAuth}) => {
       <NavigationBar setAuth={setAuth}/>
       <div className="container">
         <div className="py-4">
-          {/* <table class="table border shadow">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Surgery Name</th>
-                <th scope="col">Surgery Type</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {surgeries.map((surgery, index) => (
-                <tr>
-                  <th scope="row">{index + 1}</th>
-                  <td>{surgery.name}</td>
-                  <td>{surgery.type}</td>
-                  <td>
-                    <Link
-                      class="btn btn-primary mr-2"
-                      to={`/userhome/surgery/${surgery.name}`}
-                    >
-                      View
-                    </Link>
-                   <Link
-                      class="btn btn-outline-primary mr-2"
-                      to={`/userhome/surgery/edit/${surgery.name}`}
-                    >
-                      Edit
-                    </Link>
-                    <Link
-                      class="btn btn-danger"
-                      // onClick={() => deleteSurgery(surgery.name)}
-                    >
-                      Delete
-                    </Link> 
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table> */}
           <div className="row my-5 container ">
             {surgeries.map((surgery, index) => (
               <div key={index} class="col-md-4 mb-4">

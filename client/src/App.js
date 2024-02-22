@@ -1,5 +1,11 @@
 import React, { Fragment, useEffect, useState } from "react";
+import {
+  Route,
+  BrowserRouter as Router,
+  Routes
+} from "react-router-dom";
 import "./App.css";
+import Check from "./component/Check";
 import LabTest from "./component/LabTest";
 import Login from "./component/Login";
 import PateintAppointment from "./component/PatientAppointment";
@@ -7,15 +13,9 @@ import ProtectedPage from "./component/ProtectedPage";
 import Register from "./component/Register";
 import Surgery from "./component/Surgery";
 import UserHome from "./component/UserHome";
-import Check from "./component/Check";
+import DoctorAppointments from "./component/doctor/DoctorAppointments";
 import DoctorHome from "./component/doctor/DoctorHome";
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes
-} from "react-router-dom";
-
-
+import AppointmentData from "./component/AppointmentData";
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
   async function check_Authenticated() {
@@ -107,10 +107,19 @@ function App() {
                 )
               }
             />
+            <Route
+              path="/doctorhome/appointments"
+              element={
+                !isAuthenticated ? (
+                  <DoctorAppointments setAuth={setAuth} />
+                ) : (
+                  <Login setAuth={setAuth} />
+                )
+              }
+            />
+            <Route path="/appointment/:id" element={<AppointmentData />} />
             <Route path="/check" element={<Check/>} />
-
           </Routes>
-          
         </Router>
       </div>
     </Fragment>

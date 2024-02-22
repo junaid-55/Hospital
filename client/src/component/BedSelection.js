@@ -1,15 +1,27 @@
 import React, { Fragment, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-function Check() {
+function BedSelection() {
   const [isOpen, setIsOpen] = useState(false);
+  const [acType, setAcType] = useState("AC");
+  const [roomType, setRoomType] = useState("WARD");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
+  const handleSearchClick = () => {
+    // const { acType, roomType, minPrice, maxPrice, selectedDate } = this.state;
+    const body = { acType, roomType, minPrice, maxPrice, selectedDate };
+    console.log(body);
+
+  }
 
   return (
     <Fragment>
       <button onClick={openModal} className="btn btn-primary">
-        Check
+        Choose Bed
       </button>
       {isOpen && (
         <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -23,14 +35,20 @@ function Check() {
                 }}
               >
                 <div className="flex justify-between w-full">
-                  <select
-                    name="user_type"
-                    class="border  rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
+                <select
+                    name="ac_type"
+                    value={acType}
+                    onChange={(e) => setAcType(e.target.value)}
+                    className="border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
                   >
                     <option>AC</option>
                     <option>Non Ac</option>
                   </select>
-                  <select class="border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300">
+                  <select
+                    value={roomType}
+                    onChange={(e) => setRoomType(e.target.value)}
+                    className="border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
+                  >
                     <option>WARD</option>
                     <option>ICU</option>
                     <option>SINGLE CABIN</option>
@@ -38,19 +56,24 @@ function Check() {
                   </select>
                   <input
                     type="text"
-                    className=" w-1/5 rounded"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="w-1/5 rounded"
                     placeholder="min price"
                   />
                   <input
                     type="text"
-                    className=" w-1/5 rounded"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="w-1/5 rounded"
                     placeholder="max price"
                   />
                   <DatePicker
-                    selected={new Date()}
+                    selected={selectedDate}
+                    onChange={(date) => setSelectedDate(date)}
                     className="rounded"
                   />
-                  <button className="px-4 text-white bg-gray-600 border-l rounded">
+                  <button className="px-4 text-white bg-gray-600 border-l rounded" onClick={handleSearchClick}>
                     Search
                   </button>
                 </div>
@@ -85,4 +108,4 @@ function Check() {
   );
 }
 
-export default Check;
+export default BedSelection;

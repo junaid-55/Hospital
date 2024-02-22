@@ -1,5 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import NavigationBar from "./NavigationBar";
 import Swal from "sweetalert2";
 const UserHome = ({ setAuth }) => {
@@ -9,6 +11,13 @@ const UserHome = ({ setAuth }) => {
     setAuth(false);
     navigate("/auth/login");
   };
+
+  //use states for modal in appoinment selection
+  const [isOpen, setIsOpen] = useState(false);
+  const openModal = () => setIsOpen(true);
+  const closeModal = () => setIsOpen(false);
+  const [appointment_date, setAppointmentDate] = useState(new Date());
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   //storing doctors from databse after fetching
   const [doctors, setDoctors] = useState([]);
@@ -49,7 +58,7 @@ const UserHome = ({ setAuth }) => {
         headers: {
           "Content-Type": "application/json",
           "Request-Type": "search",
-          Criteria: criteria,
+          "Criteria": criteria,
         },
         body: JSON.stringify(body),
       });
@@ -61,10 +70,10 @@ const UserHome = ({ setAuth }) => {
     }
   };
 
-  const handleAppointmentClick = async (doctor) => {
+  const handleAppointmentClick = async () => {
     try {
-      console.log(doctor);
-      const body = { doctor };
+      closeModal();
+      const body = { doctor: selectedDoctor, appointment_date};
       const res = await fetch("http://localhost:5000/appointments", {
         method: "POST",
         headers: {
@@ -74,7 +83,6 @@ const UserHome = ({ setAuth }) => {
         },
         body: JSON.stringify(body),
       });
-      console.log(res);
       Swal.fire({
         icon: "success",
         title: "Congrats...",
@@ -149,6 +157,7 @@ const UserHome = ({ setAuth }) => {
           </button>
         </div>
       </form>
+
       {/* search bar on top */}
       {/* mapping of available doctors in card view html */}
       {/* <div className="row my-5 container "> 
@@ -172,16 +181,51 @@ const UserHome = ({ setAuth }) => {
       </div> */}
       <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {doctors.map((doctor, index) => (
-          <div class="p-6 rounded-md shadow-sm cursor-pointer bg-gradient-to-r from-violet-100 to-indigo-100 hover:from-violet-200 hover:to-indigo-200 border-violet-200 border-2 hover:border-violet-300 transition-colors duration-300">
+          <div key={index} class="p-6 rounded-md shadow-sm cursor-pointer bg-gradient-to-r from-violet-100 to-indigo-100 hover:from-violet-200 hover:to-indigo-200 border-violet-200 border-2 hover:border-violet-300 transition-colors duration-300">
             <h6 class="text-xl font-semibold mb-4">{doctor.first_name}</h6>
             <p class="text-xl font-semibold mb-4">{doctor.department_title}</p>
             <p class="text-gray-700">{doctor.schedule}</p>
             <button
               class="btn btn-success mt-2"
-              onClick={() => handleAppointmentClick(doctor)}
+              onClick={() => {
+                setSelectedDoctor(doctor);
+                openModal();
+              }}
             >
-              Appointment
+             Set Appointment
             </button>
+            {isOpen && (
+              <div className="fixed inset-0 z-10 overflow-y-auto">
+                <div className="absolute inset-0 bg-gray-500 bg-opacity-5 transition-opacity flex items-center justify-center">
+                  <div className="relative w-full max-w-lg bg-white p-6 rounded-md">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <p className="text-lg">Choose Appointment Date</p>
+                      <DatePicker
+                        selected={appointment_date}
+                        onChange={(date) => setAppointmentDate(date)}
+                      />
+                    </div>
+                    <div style={{ textAlign: 'right' }} className="mt-2">
+                    <button
+                      className="btn btn-danger mr-2"
+                      onClick={closeModal}
+                    >
+                      Cancel
+                    </button>
+                    <button className="btn btn-success" onClick={() => handleAppointmentClick(doctor)}>
+                      Confirm
+                    </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

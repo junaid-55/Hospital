@@ -56,8 +56,10 @@ router.post("/login", info_validation, async (req, res) => {
         "SELECT * FROM doctor where first_name = ( $1 )",
         [firstName]
       );
+      console.log(user.rows[0] )
       if (user.rows.length === 0) return res.status(401).send(user.rows);
       const token = jwtGenerator(user.rows[0].doctor_id);
+      console.log(token);
       return res.status(200).json({ token });
     } else if (user_type === "Patient") {
       user = await pool.query("SELECT * FROM patient where email = ( $1 )", [
