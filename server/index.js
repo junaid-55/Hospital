@@ -13,6 +13,7 @@ app.use("/surgeries/",require("./routes/surgery"));
 app.use("/userhome/",require("./routes/UserHome"));
 app.use("/tests", require('./routes/LabTest'));
 app.use("/appointments",require("./routes/Appointments"));
+// app.use("/bed_selection", require("./routes/PatientDetails"));
 app.use("/doctorhome",require("./routes/DoctorHome"));
 
 

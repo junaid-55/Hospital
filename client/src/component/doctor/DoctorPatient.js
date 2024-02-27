@@ -53,6 +53,7 @@ const DoctorPatient = () => {
     console.log("Sending prescription:", prescription);
   };
 
+  
   return (
     <div className="container mt-4">
       <h1 className="mb-4">Patient Details</h1>

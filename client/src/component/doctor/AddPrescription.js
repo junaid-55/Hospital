@@ -154,6 +154,7 @@ const handleSurgeryInputChange = (index, value) => {
         },
         body: JSON.stringify(prescription),
       });
+      
       if (response.ok) {
      swart.fire({
 

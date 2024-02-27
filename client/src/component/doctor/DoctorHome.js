@@ -13,6 +13,7 @@ function DoctorHome({ setAuth }) {
   const [doctorInfo, setDoctorInfo] = useState(null); // Initialize doctorInfo state
     
   
+  
     // Fetch the doctor's information from localStorage or an API endpoint
     // const storedDoctorInfo = JSON.parse(localStorage.getItem('doctorInfo'));
     // setDoctorInfo(storedDoctorInfo);

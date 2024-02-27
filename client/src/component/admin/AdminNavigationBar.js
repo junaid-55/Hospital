@@ -3,31 +3,30 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const DoctorNavigationBar = ({ setAuth }) => {
+const AdminNavigationBar = ({ setAuth }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const navigation = [
     {
       name: "Home",
-      href: "/doctorhome",
-      current: location.pathname === "/doctorhome",
-    },
-    // {
-    //   name: "Lab Test",
-    //   href: "/tests",
-    //   current: location.pathname === "/tests",
-    // },
-    {
-      name: "Pending Surgery",
-      href: "/doctorhome/surgeries",
-      current: location.pathname === "/doctorhome/surgeries",
+      href: "/adminhome",
+      current: location.pathname === "/adminhome",
     },
     {
-      name: "Appointments",
-      href: "/doctorappointments",
-      current: location.pathname === "/doctorappointments",
+      name: "Drug Administration",
+      href: "/adminhome/drug-administration",
+      current: location.pathname === "/adminhome/drug-administration",
     },
-    { name: "My Income", href: "/doctorincome", current: location.pathname === "/doctorincome"},
+    {
+      name: "Lab Test Administration",
+      href: "/adminhome/lab-test-administration",
+      current: location.pathname === "/adminhome/lab-test-administration",
+    },
+    {
+      name: "Reports",
+      href: "/adminhome/reports",
+      current: location.pathname === "/adminhome/reports",
+    },
   ];
   const userNavigation = [
     {
@@ -47,8 +46,7 @@ const DoctorNavigationBar = ({ setAuth }) => {
       },
     },
   ];
-  
-  
+
   //when logged in i want to change the user email and name?
   const [user, setUser] = useState({
     first_name: "",
@@ -56,12 +54,12 @@ const DoctorNavigationBar = ({ setAuth }) => {
   });
 
   const getUser = async () => {
-    const res = await fetch("http://localhost:5000/doctorhome/", {
+    const res = await fetch("http://localhost:5000/userhome/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "request-type": "user_info", 
-        token: localStorage.token, 
+        "request-type": "user_info",
+        token: localStorage.token,
       },
     });
     const user_data = await res.json();
@@ -272,4 +270,4 @@ const DoctorNavigationBar = ({ setAuth }) => {
   );
 };
 
-export default DoctorNavigationBar;
+export default AdminNavigationBar;

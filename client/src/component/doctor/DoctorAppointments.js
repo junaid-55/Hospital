@@ -198,6 +198,7 @@ return (
                   <th scope="col"></th> {/* Approve button column */}
                 </tr>
               </thead>
+              
               <tbody>
                 {appointments.map((appointment, index) => (
                   appointment.status === 'pending' && // Filter pending appointments

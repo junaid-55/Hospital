@@ -1,32 +1,81 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
+import { useParams } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 function BedSelection() {
   const [isOpen, setIsOpen] = useState(false);
   const [acType, setAcType] = useState("AC");
-  const [roomType, setRoomType] = useState("WARD");
+  const [roomType, setRoomType] = useState("General Ward");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-
+  const [bed_type, setBedType] = useState([]);
+  const [beds, setBeds] = useState([]);
+  const { id } = useParams();
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
-  const handleSearchClick = () => {
+
+  const handleSearchClick = async () => {
     // const { acType, roomType, minPrice, maxPrice, selectedDate } = this.state;
     const body = { acType, roomType, minPrice, maxPrice, selectedDate };
-    console.log(body);
+    const res = await fetch(
+      "http://localhost:5000/appointments/bed_selection/bed_search",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          criteria: "bed_search",
+          token: localStorage.token,
+          body: JSON.stringify(body),
+        },
+      }
+    );
+    const data = await res.json(); // Call the json method
+    setBeds(data);
+    console.log(data);
+  };
 
-  }
+  useEffect(() => {
+    openModal();
+  }, []);
+
+
+  const bed_type_data = async () => {
+    const res = await fetch(
+      "http://localhost:5000/appointments/bed_selection/bed_types",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Criteria: "bed_type",
+          token: localStorage.token,
+        },
+      }
+    );
+    const data = await res.json();
+    setBedType(data);
+  };
+
+  useEffect(() => {
+    handleSearchClick();
+  }, [acType, roomType, minPrice, maxPrice, selectedDate ]);
+
+  useEffect(() => {
+    bed_type_data();
+  }, []);
 
   return (
     <Fragment>
-      <button onClick={openModal} className="btn btn-primary">
+      {/* <button onClick={openModal} className="btn btn-primary">
         Choose Bed
-      </button>
+      </button> */}
       {isOpen && (
         <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="absolute inset-0 bg-gray-500 bg-opacity-200 transition-opacity flex items-center justify-center">
-            <div className="relative w-full  bg-white p-6 rounded-md" style={{ width: '70%', height: '60%' }}>
+          <div className="absolute inset-0 bg-gray-500 bg-opacity-80 transition-opacity flex items-center justify-center">
+            <div
+              className="relative w-full  bg-white p-6 rounded-md"
+              style={{ width: "70%", height: "60%" }}
+            >
               <div
                 style={{
                   display: "flex",
@@ -35,7 +84,7 @@ function BedSelection() {
                 }}
               >
                 <div className="flex justify-between w-full">
-                <select
+                  <select
                     name="ac_type"
                     value={acType}
                     onChange={(e) => setAcType(e.target.value)}
@@ -49,10 +98,9 @@ function BedSelection() {
                     onChange={(e) => setRoomType(e.target.value)}
                     className="border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
                   >
-                    <option>WARD</option>
-                    <option>ICU</option>
-                    <option>SINGLE CABIN</option>
-                    <option>DOUBLE CABIN</option>
+                    {bed_type.map((bed) => (
+                      <option>{bed.type_name}</option>
+                    ))}
                   </select>
                   <input
                     type="text"
@@ -73,9 +121,17 @@ function BedSelection() {
                     onChange={(date) => setSelectedDate(date)}
                     className="rounded"
                   />
-                  <button className="px-4 text-white bg-gray-600 border-l rounded" onClick={handleSearchClick}>
+                  {/* <button
+                    className="px-4 text-white bg-gray-600 border-l rounded"
+                    onClick={handleSearchClick}
+                  >
                     Search
-                  </button>
+                  </button> */}
+                  {/* <button
+                    className="px-4 w-1/6 btn btn-danger  border-l rounded"
+                  >
+                    Back
+                  </button> */}
                 </div>
               </div>
               <table className="table-auto w-full mt-4">
@@ -89,15 +145,24 @@ function BedSelection() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="border px-4 py-2">201A</td>
-                    <td className="border px-4 py-2">SINGLE CABIN</td>
-                    <td className="border px-4 py-2">AC</td>
-                    <td className="border px-4 py-2">858</td>
-                    <td className="border">
-                      <button className="btn btn-success w-full h-full" onClick={closeModal}>Select...</button>
-                    </td>
-                  </tr>
+                  {beds.map((bed,index) => (
+                    <tr key={index} className="border-l rounded" >
+                      <td className="border px-4 py-2">
+                        {bed.bed_id + bed.bed_type_id}
+                      </td>
+                      <td className="border px-4 py-2">{bed.type_name}</td>
+                      <td className="border px-4 py-2">{bed.ac_type}</td>
+                      <td className="border px-4 py-2">{bed.price}</td>
+                      <td className="border">
+                        <button
+                          className="btn btn-success w-full h-full"
+                          onClick={closeModal}
+                        >
+                          Select...
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

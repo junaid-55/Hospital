@@ -2,20 +2,42 @@ const router = require("express").Router();
 const pool = require("../db");
 const authorization = require("../middleware/authorization");
 
+router.delete("", authorization, async (req, res) => {
+  try {
+    console.log("request coming from /appointments");
+    const { appointment_id } = req.headers;
+    const appointment = await pool.query(
+      "DELETE FROM appointment WHERE appointment_id = $1 RETURNING *;",
+      [appointment_id]
+    );
+    console.log(appointment.rows[0]);
+    return res.json(appointment.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
 router.post("", authorization, async (req, res) => {
   try {
     console.log("request coming from /appointments");
     const patient_id = req.user;
     const type = "consultation";
-    const { doctor,appointment_date} = req.body;
+    const { doctor, appointment_date } = req.body;
     const patient = await pool.query(
       "INSERT INTO appointment (doctor_id,patient_id,type,contact_no,appointment_date) VALUES ($1,$2,$3,$4,$5) RETURNING *;",
-      [doctor.doctor_id, patient_id, type, doctor.contact_no, new Date(appointment_date)]
+      [
+        doctor.doctor_id,
+        patient_id,
+        type,
+        doctor.contact_no,
+        new Date(appointment_date),
+      ]
     );
     console.log(patient.rows[0]);
     return res.json(patient.rows[0]);
   } catch (err) {
     console.log(err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -56,7 +78,8 @@ router.get("/:appointment_id", authorization, async (req, res) => {
       FROM appointment A 
       JOIN doctor D ON A.doctor_id = D.doctor_id 
       JOIN patient P on P.patient_id = A.patient_id 
-      WHERE appointment_id = $1;`, [appointment_id]
+      WHERE appointment_id = $1;`,
+      [appointment_id]
     );
     console.log(appointment.rows[0]);
     return res.json(appointment.rows[0]);
@@ -65,4 +88,30 @@ router.get("/:appointment_id", authorization, async (req, res) => {
   }
 });
 
+router.get("/bed_selection/:criteria", authorization, async (req, res) => {
+  try {
+    const { criteria } = req.params;
+    if (criteria === "bed_types") {
+      console.log("request coming from /bed_selection/bed_type");
+      const bed_type = await pool.query("SELECT type_name FROM bed_type");
+      return res.json(bed_type.rows);
+    } else if (criteria === "bed_search") {
+      console.log("request coming from /bed_selection/search");
+      const body = JSON.parse(req.headers.body);
+      let { acType, roomType, minPrice, maxPrice, selectedDate } = body;
+      if (!minPrice) minPrice = 0;
+      if (!maxPrice) maxPrice = 100000;
+      const bed_search = await pool.query(
+        `SELECT * FROM bed 
+        JOIN bed_type on bed.bed_type_id = bed_type.bed_type_id
+         WHERE price BETWEEN $1 AND $2
+         AND type_name = $3 AND ac_type = $4`,
+        [minPrice, maxPrice, roomType, acType]
+      );
+      return res.json(bed_search.rows);
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 module.exports = router;
