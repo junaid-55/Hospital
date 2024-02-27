@@ -109,15 +109,30 @@ function App() {
               }
             />
             <Route
-              path="/doctorhome/appointments"
+              path="/doctorappointments"
               element={
-                !isAuthenticated ? (
+                <ProtectedPage isAuthenticated={isAuthenticated}>
                   <DoctorAppointments setAuth={setAuth} />
-                ) : (
-                  <Login setAuth={setAuth} />
-                )
+                </ProtectedPage> 
               }
             />
+            <Route 
+            path="/DoctorPatient/:appointmentId"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <DoctorPatient setAuth={setAuth} />
+              </ProtectedPage>
+            }
+            />
+            <Route
+            path="/AddPrescription/:appointmentId"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <AddPrescription setAuth={setAuth} />
+              </ProtectedPage>
+            }
+            />
+
             <Route path="/appointment/:id" element={<AppointmentData />} />
 
             {/* This Paths has some issues with setAuth  */}
