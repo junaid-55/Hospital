@@ -5,6 +5,9 @@ import BedSelection from "./BedSelection";
 function OutPatientAppointmentInfo() {
   const [details, setDetails] = useState([]);
   const { id } = useParams();
+  const [isBedSelected, setIsBedSelected] = useState(false);
+  const [changeBedClicked, setChangeBedClicked] = useState(false);
+  const [chooseBedClicked, setChooseBedClicked] = useState(false);
   function formatDate(dateString) {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -22,7 +25,6 @@ function OutPatientAppointmentInfo() {
       });
       const data = await res.json();
       setDetails(data);
-      console.log("Details:", data);
     } catch (error) {
       console.error("Error fetching details:", error.message);
     }
@@ -34,12 +36,12 @@ function OutPatientAppointmentInfo() {
 
   return (
     <Fragment>
-      <div className="ml-40 mt-10">
-        <div class="px-4 sm:px-0">
-          <h3 class="text-xl font-semibold font-mono leading-7 text-gray-900">
+    <div className="ml-40 mt-10">
+        <div className="px-4 sm:px-0">
+          <h3 className="text-xl font-semibold font-mono leading-7 text-gray-900">
             Patient Information
           </h3>
-          <p class="mt-1 text-lg  font-semibold font-mono max-w-2xl  leading-6 text-gray-500">
+          <p className="mt-1 text-lg  font-semibold font-mono max-w-2xl  leading-6 text-gray-500">
             Personalized details of this appointment...
           </p>
         </div>
@@ -63,7 +65,7 @@ function OutPatientAppointmentInfo() {
             </div>
             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
               <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
-               Doctor's Email address
+                Doctor's Email address
               </dt>
               <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                 {details.doctor_email}
@@ -82,15 +84,44 @@ function OutPatientAppointmentInfo() {
                 Patient's Current Type
               </dt>
               <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {/* {details.patient_type} */}Out Patient
+                Out Patient
               </dd>
             </div>
             <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
+              <dt class="text-lg font-semibold font-mono  text-gray-900">
                 Bed Details
               </dt>
               <dd class="text-base leading-10 text-gray-700 sm:col-span-2 sm:mt-0">
-               No Bed selected yet <BedSelection />
+                {isBedSelected ? (
+                  <div>
+                    <button className="btn btn-success mr-2">
+                      See details
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setChangeBedClicked(new Date().getTime());
+                      }}
+                    >
+                      change Bed
+                    </button>
+                    {changeBedClicked && (
+                      <BedSelection key={changeBedClicked} />
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => setChooseBedClicked(new Date().getTime())}
+                    >
+                      Select Bed
+                    </button>
+                    {chooseBedClicked && (
+                      <BedSelection key={chooseBedClicked} />
+                    )}
+                  </div>
+                )}
               </dd>
             </div>
           </dl>

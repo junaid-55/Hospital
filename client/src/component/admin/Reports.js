@@ -1,8 +1,9 @@
 import React, { Fragment, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-function Check() {
+import AdminNavigationBar from "./AdminNavigationBar";
+import swal from "sweetalert2";
+function Reports({ setAuth }) {
   const [selectedStartDate, setSelectedStartDate] = useState(null);
   const [selectedEndDate, setSelectedEndDate] = useState(null);
   const [selectedTimeType, setSelectedTimeType] = useState("Custom");
@@ -33,10 +34,14 @@ function Check() {
     setCount(event.target.value);
   }; // Added count change handler
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     // Extract values from HTML tags
-    const selectedStartDateValue = selectedStartDate ? selectedStartDate.toISOString() : "";
-    const selectedEndDateValue = selectedEndDate ? selectedEndDate.toISOString() : "";
+    const selectedStartDateValue = selectedStartDate
+      ? selectedStartDate.toISOString()
+      : "";
+    const selectedEndDateValue = selectedEndDate
+      ? selectedEndDate.toISOString()
+      : "";
     const selectedTimeTypeValue = selectedTimeType;
     const selectedCriteriaTypeValue = selectedCriteriaType;
 
@@ -46,6 +51,26 @@ function Check() {
     console.log("Selected Time Type:", selectedTimeTypeValue);
     console.log("Selected Criteria Type:", selectedCriteriaTypeValue);
     console.log("Count:", count); // Log the count value
+    if (selectedEndDateValue < selectedStartDateValue) {
+      swal.fire({
+        icon: "error",
+        text: "End date should be greater than start date",
+      });
+      return;
+    } else if (count <= 0) {
+      swal.fire({
+        icon: "error",
+        text: "Count should be greater than 0",
+      });
+      return;
+    }
+    else if(selectedTimeType == "Custom" && (selectedStartDateValue == "" || selectedEndDateValue == "")){
+      swal.fire({
+        icon: "error",
+        text: "Please select start and end date",
+      });
+      return; 
+    }
 
     // Simulate data retrieval
     const retrievedData = [
@@ -53,12 +78,28 @@ function Check() {
       { id: 2, name: "Jane Smith", earnings: "$1500" },
       { id: 3, name: "Bob Johnson", earnings: "$800" },
     ];
-
     setData(retrievedData);
+
+  //   const res = await fetch("/admin/reports", {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       body: JSON.stringify({
+  //         selectedStartDateValue,
+  //         selectedEndDateValue,
+  //         selectedTimeTypeValue,
+  //         selectedCriteriaTypeValue,
+  //         count,
+  //       }),
+  //     },
+  //   });
+  //   const data = await res.json();
+  //   setData(data);
   };
 
   return (
     <Fragment>
+      <AdminNavigationBar setAuth={setAuth} />
       <h1
         className="mt-3 font-medium "
         style={{ fontSize: "3em", textAlign: "center" }}
@@ -155,4 +196,4 @@ function Check() {
   );
 }
 
-export default Check;
+export default Reports;

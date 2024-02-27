@@ -56,17 +56,29 @@ const Login = ({ setAuth }) => {
         });
       }
 
+      // if user is doctor then navigate to doctor home page
       if(user_type === "Doctor"){
         const parseRes = await response.json();
         localStorage.setItem("token", parseRes.token);
         navigate("/doctorhome");
         return;
       }
-      // storing jwt token during login if valid
+      // if user is patient then navigate to user home page
+      else if(user_type === "Patient"){
       const parseRes = await response.json();
       localStorage.setItem("token", parseRes.token);
       setAuth(true);
       navigate("/userhome");
+      return;
+      }
+      // if user is admin then navigate to admin home page
+      else if (user_type === "Admin"){
+        const parseRes = await response.json();
+        localStorage.setItem("token", parseRes.token);
+        setAuth(true);
+        navigate("/adminhome");
+        return;
+      }
     } catch (err) {
       console.error(err.message);
     }
@@ -86,7 +98,6 @@ const Login = ({ setAuth }) => {
               alt="https://undraw.co/illustrations"
               title="https://undraw.co/illustrations"
               viewBox="0 0 524.67004 531.39694"
-              //   xmlns:xlink="http://www.w3.org/1999/xlink"
             >
               <polygon
                 points="117.67523 88.74385 113.67523 109.74385 133.61763 115.36589 131.1398 92.94604 117.67523 88.74385"
@@ -400,6 +411,7 @@ const Login = ({ setAuth }) => {
                   >
                     <option>Patient</option>
                     <option>Doctor</option>
+                    <option>Admin</option>
                   </select>
                 </form>
               <div>

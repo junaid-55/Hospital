@@ -58,7 +58,7 @@ const UserHome = ({ setAuth }) => {
         headers: {
           "Content-Type": "application/json",
           "Request-Type": "search",
-          "Criteria": criteria,
+          Criteria: criteria,
         },
         body: JSON.stringify(body),
       });
@@ -73,7 +73,7 @@ const UserHome = ({ setAuth }) => {
   const handleAppointmentClick = async () => {
     try {
       closeModal();
-      const body = { doctor: selectedDoctor, appointment_date};
+      const body = { doctor: selectedDoctor, appointment_date };
       const res = await fetch("http://localhost:5000/appointments", {
         method: "POST",
         headers: {
@@ -83,12 +83,25 @@ const UserHome = ({ setAuth }) => {
         },
         body: JSON.stringify(body),
       });
+  
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error);
+      }
+  
+      const data = await res.json();
+  
       Swal.fire({
         icon: "success",
         title: "Congrats...",
         text: "Appointment successful...",
       });
     } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: err.message,
+      });
       console.error(err.message);
     }
   };
@@ -181,7 +194,10 @@ const UserHome = ({ setAuth }) => {
       </div> */}
       <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {doctors.map((doctor, index) => (
-          <div key={index} class="p-6 rounded-md shadow-sm cursor-pointer bg-gradient-to-r from-violet-100 to-indigo-100 hover:from-violet-200 hover:to-indigo-200 border-violet-200 border-2 hover:border-violet-300 transition-colors duration-300">
+          <div
+            key={index}
+            class="p-6 rounded-md shadow-sm cursor-pointer bg-gradient-to-r from-violet-100 to-indigo-100 hover:from-violet-200 hover:to-indigo-200 border-violet-200 border-2 hover:border-violet-300 transition-colors duration-300"
+          >
             <h6 class="text-xl font-semibold mb-4">{doctor.first_name}</h6>
             <p class="text-xl font-semibold mb-4">{doctor.department_title}</p>
             <p class="text-gray-700">{doctor.schedule}</p>
@@ -192,7 +208,7 @@ const UserHome = ({ setAuth }) => {
                 openModal();
               }}
             >
-             Set Appointment
+              Set Appointment
             </button>
             {isOpen && (
               <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -211,16 +227,19 @@ const UserHome = ({ setAuth }) => {
                         onChange={(date) => setAppointmentDate(date)}
                       />
                     </div>
-                    <div style={{ textAlign: 'right' }} className="mt-2">
-                    <button
-                      className="btn btn-danger mr-2"
-                      onClick={closeModal}
-                    >
-                      Cancel
-                    </button>
-                    <button className="btn btn-success" onClick={() => handleAppointmentClick(doctor)}>
-                      Confirm
-                    </button>
+                    <div style={{ textAlign: "right" }} className="mt-2">
+                      <button
+                        className="btn btn-danger mr-2"
+                        onClick={closeModal}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-success"
+                        onClick={() => handleAppointmentClick(doctor)}
+                      >
+                        Confirm
+                      </button>
                     </div>
                   </div>
                 </div>

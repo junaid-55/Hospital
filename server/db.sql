@@ -6,7 +6,6 @@ CREATE TABLE patient (
     last_name VARCHAR(50),
     contact_no VARCHAR(14) not null,
     password VARCHAR(10)
-    
 );
 
 --department table
@@ -35,6 +34,8 @@ CREATE TABLE doctor (
 --prescription table
 CREATE TABLE prescription(
     prescription_id SERIAL PRIMARY KEY,
+--changes made
+    --patient_name varchar(250),
     disease_name VARCHAR(250),
     date DATE,
     drug_name_with_time varchar(250),
@@ -46,7 +47,8 @@ CREATE TABLE appointment (
     appointment_id SERIAL PRIMARY KEY,
     doctor_id INT, 
     patient_id INT, 
-    out_patient_id INT,
+--changes made
+    --out_patient_id INT,
     prescription_id INT,
     type varchar(50),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
@@ -96,11 +98,11 @@ CREATE TABLE bed_type (
     description TEXT   
 );
 
-
 --bed table
 CREATE TABLE bed (
     bed_id SERIAL PRIMARY KEY,
     bed_type_id int not null,
+    ac_type VARCHAR(10),
     price FLOAT,
     FOREIGN key (bed_type_id) REFERENCES bed_type(bed_type_id)
 );
@@ -113,7 +115,9 @@ CREATE TABLE bed_taken (
     cost FLOAT,
     occupying_date DATE,
     discharge_date DATE,
-    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id)
+    FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
+--changes made here
+    FOREIGN KEY (bed_id) REFERENCES bed(bed_id)
 );
 
 --surgery table
@@ -195,7 +199,6 @@ CREATE TABLE test_taken (
     FOREIGN KEY (test_id) REFERENCES test(test_id),
     FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
     FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
-
 );
 
 --bill table

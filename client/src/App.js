@@ -1,9 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes
-} from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+
 import "./App.css";
 import Check from "./component/Check";
 import LabTest from "./component/LabTest";
@@ -16,6 +13,10 @@ import UserHome from "./component/UserHome";
 import DoctorAppointments from "./component/doctor/DoctorAppointments";
 import DoctorHome from "./component/doctor/DoctorHome";
 import AppointmentData from "./component/AppointmentData";
+import AdminHome from "./component/admin/AdminHome";
+import LabTestAdminstration from "./component/admin/LabTestAdminstration";
+import DrugAdminstration from "./component/admin/DrugAdminstration";
+import Reports from "./component/admin/Reports";
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
   async function check_Authenticated() {
@@ -77,7 +78,7 @@ function App() {
               path="/surgeries"
               element={
                 <ProtectedPage isAuthenticated={isAuthenticated}>
-                  <Surgery setAuth={setAuth}/>
+                  <Surgery setAuth={setAuth} />
                 </ProtectedPage>
               }
             />
@@ -85,17 +86,17 @@ function App() {
               path="/tests"
               element={
                 <ProtectedPage isAuthenticated={isAuthenticated}>
-                  <LabTest setAuth={setAuth}/>
+                  <LabTest setAuth={setAuth} />
                 </ProtectedPage>
               }
             />
-            <Route 
-            path="/appointments"
-            element={
-              <ProtectedPage isAuthenticated={isAuthenticated}>
-                <PateintAppointment setAuth={setAuth} />
-              </ProtectedPage> 
-            }
+            <Route
+              path="/appointments"
+              element={
+                <ProtectedPage isAuthenticated={isAuthenticated}>
+                  <PateintAppointment setAuth={setAuth} />
+                </ProtectedPage>
+              }
             />
             <Route
               path="/doctorhome"
@@ -118,7 +119,25 @@ function App() {
               }
             />
             <Route path="/appointment/:id" element={<AppointmentData />} />
-            <Route path="/check" element={<Check/>} />
+
+            {/* This Paths has some issues with setAuth  */}
+            <Route
+              path="/adminhome"
+              element={<AdminHome setAuth={setAuth} />}
+            />
+            <Route
+              path="/adminhome/lab-test-administration"
+              element={<LabTestAdminstration setAuth={setAuth} />}
+            />
+            <Route
+              path="/adminhome/drug-administration"
+              element={<DrugAdminstration setAuth={setAuth} />}
+            />
+            <Route
+              path="/adminhome/reports"
+              element={<Reports setAuth={setAuth} />}
+            />
+            <Route path="/check" element={<Check />} />
           </Routes>
         </Router>
       </div>

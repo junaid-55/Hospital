@@ -14,24 +14,43 @@ function PatientAppointment({ setAuth }) {
         token: localStorage.token,
       },
     });
-    const data = await res.json(); 
+    const data = await res.json();
     setAppointments(data);
     console.log(data);
   };
+
+  const handleDelete = async (appointment_id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/appointments`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          token: localStorage.token,
+          appointment_id: appointment_id,
+        },
+      });
+      const data = await res.json();
+      console.log(data);
+      appointment_data();
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
   useEffect(() => {
     appointment_data();
   }, []);
 
   //parsing of date
   function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   }
-  
+
   const handleClick = (appointment) => {
     console.log(appointment);
     navigate(`/appointment/${appointment.appointment_id}`);
-  }
+  };
   return (
     <Fragment>
       <NavigationBar setAuth={setAuth} />
@@ -44,14 +63,31 @@ function PatientAppointment({ setAuth }) {
                 {/* <h6 class="card-text">{appointment.type}</h6> */}
                 <p class="card-text">{formatDate(appointment.date)}</p>
                 <p class="card-text">{appointment.contact_no}</p>
-                {! (appointment.status === 'pending') ? 
-                  <button class="btn btn-secondary position-absolute top-3 end-3 custom-btn">Pending...</button> : 
-                  <button class="btn btn-success position-absolute top-3 end-3 custom-btn" onClick={() => handleClick(appointment)}>View Details</button>}
+                {!appointment.status === "pending" ? (
+                  <div>
+                    <button class="btn btn-secondary position-absolute top-2 end-3 custom-btn">
+                      Pending...
+                    </button>
+                    <button
+                      class="btn btn-danger position-absolute top-12 end-3 custom-btn"
+                      onClick={() => handleDelete(appointment.appointment_id)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    class="btn btn-success position-absolute top-3 end-3 custom-btn"
+                    onClick={() => handleClick(appointment)}
+                  >
+                    View Details
+                  </button>
+                )}
               </div>
             </div>
           </div>
         ))}
-        </div>
+      </div>
     </Fragment>
   );
 }

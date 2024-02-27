@@ -12,7 +12,7 @@ router.post("/register", info_validation, async (req, res) => {
     console.log(user_type, firstName, email);
     let exist_user;
     let user;
-    if (user_type === "doctor") {
+    if (user_type.toUpperCase() === "DOCTOR") {
       // exist_user = await pool.query(
       //   "SELECT * FROM doctor WHERE name = $1 AND emailmail = $2",
       //   [firstName, email]
@@ -23,7 +23,7 @@ router.post("/register", info_validation, async (req, res) => {
       //     [name, email, password]
       //   );
       // } else return res.status(401);
-    } else if (user_type === "patient") {
+    } else if (user_type.toUpperCase() === "PATIENT") {
       exist_user = await pool.query("SELECT * FROM patient WHERE email = $1", [
         email,
       ]);
@@ -50,25 +50,27 @@ router.post("/login", info_validation, async (req, res) => {
   try {
     console.log("request coming from auth/login");
     const { firstName, email, password, user_type } = req.body;
-    let user;
+    let user, id;
     if (user_type === "Doctor") {
       user = await pool.query(
         "SELECT * FROM doctor where first_name = ( $1 )",
         [firstName]
       );
-      console.log(user.rows[0] )
+      console.log(user.rows[0]);
       if (user.rows.length === 0) return res.status(401).send(user.rows);
-      const token = jwtGenerator(user.rows[0].doctor_id);
-      console.log(token);
-      return res.status(200).json({ token });
-    } else if (user_type === "Patient") {
-      user = await pool.query("SELECT * FROM patient where email = ( $1 )", [
-        email,
-      ]);
+      id = user.rows[0].doctor_id;
+    } else if (user_type.toUpperCase() === "PATIENT" || user_type.toUpperCase() === "ADMIN") {
+      user = await pool.query(
+        "SELECT * FROM patient where email = ( $1 ) AND password = $2 ",
+        [email, password]
+      );
       if (user.rows.length === 0) return res.status(401).send(user.rows);
-      const token = jwtGenerator(user.rows[0].patient_id);
-      return res.status(200).json({ token });
+      id = user.rows[0].patient_id;
     }
+
+    //sending jwt token
+    const token = jwtGenerator(id);
+    return res.status(200).json({ token });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("server error");

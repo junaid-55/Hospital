@@ -2,7 +2,7 @@ import React, { Fragment, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-function Check() {
+function TopEa() {
   const [selectedStartDate, setSelectedStartDate] = useState(null);
   const [selectedEndDate, setSelectedEndDate] = useState(null);
   const [selectedTimeType, setSelectedTimeType] = useState("Custom");
@@ -35,8 +35,12 @@ function Check() {
 
   const handleSearch = () => {
     // Extract values from HTML tags
-    const selectedStartDateValue = selectedStartDate ? selectedStartDate.toISOString() : "";
-    const selectedEndDateValue = selectedEndDate ? selectedEndDate.toISOString() : "";
+    const selectedStartDateValue = selectedStartDate
+      ? selectedStartDate.toISOString()
+      : "";
+    const selectedEndDateValue = selectedEndDate
+      ? selectedEndDate.toISOString()
+      : "";
     const selectedTimeTypeValue = selectedTimeType;
     const selectedCriteriaTypeValue = selectedCriteriaType;
 
@@ -60,13 +64,13 @@ function Check() {
   return (
     <Fragment>
       <h1
-        className="mt-3 font-medium "
+        className="mt-5 font-medium "
         style={{ fontSize: "3em", textAlign: "center" }}
       >
         Top Earnings
       </h1>
       <div className=" w-full container mt-2  z-10 overflow-y-auto">
-        <div className="mt-2 inset-20 fixed bg-gray-500 bg-opacity-200 transition-opacity flex items-center justify-center">
+        <div className="mt-2 inset-20 fixed transition-opacity flex items-center justify-center">
           <div
             className="relative w-full  bg-white p-6 rounded-md"
             style={{ width: "100%", height: "100%" }}
@@ -118,7 +122,7 @@ function Check() {
                 <input
                   type="text"
                   className=" w-1/12 mr-2 rounded"
-                  placeholder="Count"
+                  placeholder="count"
                   value={count} // Bind the count value
                   onChange={handleCountChange} // Add the count change handler
                 />
@@ -133,9 +137,9 @@ function Check() {
             <table className="table-auto w-full mt-4">
               <thead>
                 <tr className="border">
-                  <th className="px-4 py-2 font-medium">ID</th>
-                  <th className="px-4 py-2 font-medium">Name</th>
-                  <th className="px-4 py-2 font-medium">Earnings</th>
+                  <th className="px-4 py-2">ID</th>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Earnings</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,4 +159,4 @@ function Check() {
   );
 }
 
-export default Check;
+export default TopEa;
