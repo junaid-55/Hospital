@@ -24,10 +24,10 @@ const NavigationBar = ({ setAuth }) => {
     },
     {
       name: "Appointments",
-      href: "/doctorhome/appointments",
-      current: location.pathname === "/doctorhome/appointments",
+      href: "/doctorappointments",
+      current: location.pathname === "/doctorappointments",
     },
-    { name: "Reports", href: "#", current: false },
+    { name: "My Income", href: "/doctorincome", current: location.pathname === "/doctorincome"},
   ];
   const userNavigation = [
     {
@@ -55,7 +55,7 @@ const NavigationBar = ({ setAuth }) => {
   });
 
   const getUser = async () => {
-    const res = await fetch("http://localhost:5000/userhome/", {
+    const res = await fetch("http://localhost:5000/doctorhome/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

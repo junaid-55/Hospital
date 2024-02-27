@@ -210,3 +210,21 @@ CREATE TABLE bill(
     FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
 );
 
+create table prescription_lab (
+
+    prescription_id int,
+    test_id int,
+    test_name varchar(100),
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (test_id) REFERENCES test(test_id)
+);
+create table prescription_drug (
+    prescription_id int,
+    drug_id int,
+    drug_name varchar(100),
+    dosage varchar(50),
+    days int,
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (drug_id) REFERENCES drug(drug_id)
+);
+

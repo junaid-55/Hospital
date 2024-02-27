@@ -16,6 +16,8 @@ import UserHome from "./component/UserHome";
 import DoctorAppointments from "./component/doctor/DoctorAppointments";
 import DoctorHome from "./component/doctor/DoctorHome";
 import AppointmentData from "./component/AppointmentData";
+import DoctorPatient from "./component/doctor/DoctorPatient";
+import AddPrescription from "./component/doctor/AddPrescription";
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
   async function check_Authenticated() {
@@ -108,15 +110,30 @@ function App() {
               }
             />
             <Route
-              path="/doctorhome/appointments"
+              path="/doctorappointments"
               element={
-                !isAuthenticated ? (
+                <ProtectedPage isAuthenticated={isAuthenticated}>
                   <DoctorAppointments setAuth={setAuth} />
-                ) : (
-                  <Login setAuth={setAuth} />
-                )
+                </ProtectedPage> 
               }
             />
+            <Route 
+            path="/DoctorPatient/:appointmentId"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <DoctorPatient setAuth={setAuth} />
+              </ProtectedPage>
+            }
+            />
+            <Route
+            path="/AddPrescription/:appointmentId"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <AddPrescription setAuth={setAuth} />
+              </ProtectedPage>
+            }
+            />
+
             <Route path="/appointment/:id" element={<AppointmentData />} />
             <Route path="/check" element={<Check/>} />
           </Routes>
