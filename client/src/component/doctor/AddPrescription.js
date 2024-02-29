@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import swart from "sweetalert2";
+import Swal from 'sweetalert2';
 const AddPrescription = () => {
   const [prescription, setPrescription] = useState({
+    patientType: "",
     diseaseName: "",
     date: "",
     drugs: [{ name: [], dosage: [0, 0, 0], days: 0  }],
@@ -145,31 +146,88 @@ const handleSurgeryInputChange = (index, value) => {
   // Handler for saving the prescription
   const handleSavePrescription = async (e) => {
     e.preventDefault();
-
+  
     try {
+      const prescriptionData = {
+        diseaseName: prescription.diseaseName,
+        patientType: prescription.patientType,
+        date: prescription.date,
+        advice: prescription.advice
+      };
+  
       const response = await fetch(`http://localhost:5000/doctorhome/prescription/${appointmentId}`, {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(prescription),
+        body: JSON.stringify(prescriptionData)
       });
-      
+  
       if (response.ok) {
-     swart.fire({
-
-        icon: 'success',
-        title: 'Success',
-        text: 'Prescription added successfully',
-      });
-
-      } else {
+        if (prescription.drugs.length > 0) {
+          try {
+            const response1 = await fetch(`http://localhost:5000/doctorhome/prescription_drug/${appointmentId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ drugs: prescription.drugs}),
+            });
+            if (!response1.ok) {
+              throw new Error("Failed to save prescription drugs");
+            }
+          } catch (error) {
+            console.error("Error saving prescription drugs:", error.message);
+          }
+        }
+  
+        if (prescription.Test.length > 0) {
+          try {
+            const response2 = await fetch(`http://localhost:5000/doctorhome/prescription_test/${appointmentId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(prescription.Test),
+            });
+            if (!response2.ok) {
+              throw new Error("Failed to save prescription tests");
+            }
+          } catch (error) {
+            console.error("Error saving prescription tests:", error.message);
+          }
+        }
+  
+        if (prescription.Surgery.length > 0) {
+          try {
+            const response3 = await fetch(`http://localhost:5000/doctorhome/prescription_surgery/${appointmentId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(prescription.Surgery),
+            });
+            if (!response3.ok) {
+              throw new Error("Failed to save prescription surgeries");
+            }
+          } catch (error) {
+            console.error("Error saving prescription surgeries:", error.message);
+          }
+        }
+        if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Prescription added successfully',
+        });
+      }} else {
         console.error("Failed to save prescription");
       }
     } catch (error) {
       console.error("Error saving prescription:", error.message);
     }
   };
+  
 const handleDeleteSurgery = (index) => {
   const surgeries = [...prescription.Surgery];
   surgeries.splice(index, 1);
@@ -188,7 +246,7 @@ const handleDeleteSurgery = (index) => {
         method: "DELETE",
       });
       if (response.ok) {
-        swart.fire({
+        Swal.fire({
           icon: 'success',
           title: 'Success',
           text: 'Test deleted successfully',
@@ -214,7 +272,7 @@ const handleDeleteTest = (index) => {
     setPrescription({ ...prescription, drugs });
     try {
 
-      const response = fetch(`http://localhost:5000/doctorhome/deletedrug/${prescription.id}`, {
+      const response = fetch(`http://localhost:5000/doctorhome/deletedrug/${index,appointmentId}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -227,11 +285,27 @@ const handleDeleteTest = (index) => {
       console.error("Error deleting prescription:", error.message);
     }
   }
+  const handlePatientTypeChange = (e) => {
+    setPrescription({ ...prescription, patientType: e.target.value });
+  };
 
   return (
     <div>
       <h2>Add Prescription</h2>
       <form onSubmit={handleSavePrescription}>
+      <div>
+        <label htmlFor="patientType">Patient Type:</label>
+        <select
+          id="patientType"
+          name="patientType"
+          value={prescription.patientType}
+          onChange={handlePatientTypeChange}
+        >
+          <option value="">Select Patient Type</option>
+          <option value="In Patient">In Patient</option>
+          <option value="Out Patient">Out Patient</option>
+        </select>
+      </div>
         <div>
           <label htmlFor="diseaseName">Disease Name:</label>
           <input
@@ -397,7 +471,8 @@ const handleDeleteTest = (index) => {
  
 
 
-        <button type="submit">Save Prescription</button>
+        <button type="submit"onClick ={handleSavePrescription}>
+          Save Prescription</button>
       </form>
     </div>
   );

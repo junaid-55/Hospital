@@ -39,6 +39,7 @@ CREATE TABLE prescription(
     disease_name VARCHAR(250),
     date DATE,
     drug_name_with_time varchar(250),
+    patient_type varchar(250),
     advice TEXT
 );
 
@@ -143,7 +144,7 @@ CREATE TABLE surgery_taken (
     in_patient_id INT, 
     surgery_id INT, 
     price FLOAT,
-    status VARCHAR(50),
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
     FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
     FOREIGN KEY (surgery_id) REFERENCES surgery(surgery_id)
 );
@@ -229,5 +230,14 @@ create table prescription_drug (
     days int,
     FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
     FOREIGN KEY (drug_id) REFERENCES drug(drug_id)
+);
+create table prescription_surgery (
+    prescription_id int,
+    surgery_id int,
+    date varchar(100),
+    surgery_name varchar(50),
+  
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (surgery_id) REFERENCES surgery(surgery_id)
 );
 

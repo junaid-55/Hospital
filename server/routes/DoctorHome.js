@@ -69,20 +69,84 @@ router.post("", async (req, res) => {
 //     console.log(err.message);
 //   }
 // });
-router.put("/prescription/:appointmentId", authorization, async (req, res) => {
+router.put("/prescription/:appointmentId", async (req, res) => {
   try {
     console.log("request coming from /doctorhome/prescription/:appointmentId");
-    const { id } = req.params;
-    const { disease_name, prescription, appointment_id } = req.body;
+    const { appointmentId } = req.params;
+    const { disease_name, patientType, date, advice } = req.body;
     const user = await pool.query(
-      "UPDATE appointment SET disease_name = $1, prescription = $2 WHERE appointment_id = $3",
-      [disease_name, prescription, appointment_id]
+      "UPDATE prescription SET prescription_id=$1, disease_name=$2, patient_type=$3, date=$4, advice=$5 WHERE prescription_id=$6 RETURNING *",
+      [appointmentId, disease_name, patientType, date, advice, appointmentId]
     );
     return res.json(user.rows);
   } catch (err) {
     console.log(err.message);
+    return res.status(500).json({ error: "An error occurred while updating prescription." });
   }
 });
+
+router.put("/prescriptionlab/:appointmentId",  async (req, res) => {
+  try {
+    console.log("request coming from /doctorhome/prescriptionlab/:appointmentId");
+    const { appointmentId } = req.params;
+    const { test_name } = req.body;
+    const user = await pool.query(
+      "UPDATE prescription_lab SET test_name = $1, test_id = (SELECT test_id FROM drug WHERE test_name = $1) RETURNING *",
+      [test_name]
+    );
+      
+    return res.json(user.rows);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+router.put("/prescriptionsurgery/:appointmentId", async (req, res) => {
+  try {
+    console.log("request coming from /doctorhome/prescriptionsurgery/:appointmentId");
+    const { id } = req.params;
+    const { surgery_id} = req.body;
+    const user = await pool.query(
+      "UPDATE prescription_surgery SET  surgery_name=$1,surgery_id=(select surgery_id from surgery where surgery_name=$1), status='pending' RETURNING *",
+      [surgery_id]
+    );
+    return res.json(user.rows);
+  }
+  catch (err) {
+    console.log(err.message);
+  }
+}
+);
+router.put("/prescription_drug/:appointmentId", async (req, res) => {
+  try {
+    console.log("request coming from /doctorhome/prescription_drug/:appointmentId");
+    const { appointmentId } = req.params;
+    const { drugs } = req.body;
+    
+    const insertedPrescriptions = await Promise.all(drugs.map(async (drug) => {
+      const { name, dosage, days } = drug;
+      const user = await pool.query(
+        `WITH selected_drug AS (
+          SELECT drug_id FROM drug WHERE name = $2
+      )
+      INSERT INTO prescription_drug(prescription_id, drug_id, drug_name, dosage, days) 
+      SELECT $1, drug_id, $2, $3, $4 FROM selected_drug RETURNING *
+      `,
+               [appointmentId,name, dosage, days]
+      );
+      return user.rows;
+    }));
+
+    return res.json(insertedPrescriptions.flat());
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 router.get("/drug",  async (req, res) => {
   try {
     console.log("request coming from /doctorhome/drug");
@@ -134,7 +198,7 @@ router.post("/prescriptiondrug/:prescription_id", authorization, async (req, res
   }
 });
 
-router.delete("/deletedrug/:prescription_id", authorization, async (req, res) => {
+router.delete("/deletedrug/:drugName,appointmentId", authorization, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await pool.query("DELETE FROM prescription_drug WHERE drug_id = $1", [id]);
@@ -269,4 +333,69 @@ router.get("/doctorappointment/:appointmentId", authorization, async (req, res) 
     console.error(err);
   }
 });
+router.get("/doctor-surgery", async (req, res) => {
+  try {
+    console.log("request coming from /appointments/doctor-surgery/:appointmentId");
+    const type = req.headers.type;
+    console.log(appointmentId);
+    const surgery = await pool.query(
+      `SELECT st.*,s.* FROM surgery_taken st
+      join surgery s on s.surgery_id = st.surgery_id
+      join in_patient ip on ip.in_patient_id = st.in_patient_id
+      join appointment a on a.appointment_id = ip.appointment_id
+      ;`
+    );
+    console.log(surgery.rows);
+    return res.json(surgery.rows);
+  } catch (err) {
+    console.error(err);
+  }
+});
+router.get("/doctor-approvedsurgeries/:appointmentId",  async (req, res) => {
+  try {
+    console.log("request coming from /appointments/doctor-approvedsurgeries/:appointmentId");
+    const { appointmentId } = req.params;
+    const type = req.headers.type;
+    console.log(appointmentId);
+    const surgery = await pool.query(
+      `SELECT st.*,s.* FROM surgery_taken st
+      join surgery s on s.surgery_id = st.surgery_id
+      join in_patient ip on ip.in_patient_id = st.in_patient_id
+      join appointment a on a.appointment_id = ip.appointment_id
+      where a.appointment_id = $1 and st.status = 'approved'
+      ;`, [appointmentId]
+    );
+  
+    console.log(surgery.rows);
+    return res.json(surgery.rows);
+  } catch (err) {
+    console.error(err);
+  }
+}
+);
+router.get("/doctor-approvesurgery/:appointmentId",  async (req, res) => {
+  try {
+    console.log("request coming from /appointments/doctor-approvesurg/:appointmentId");
+    const { appointmentId } = req.params;
+    const type = req.headers.type;
+    console.log(appointmentId);
+    const surgery = await pool.query(
+      `UPDATE surgery_taken AS st
+      SET status = 'approved'
+      FROM surgery AS s
+      JOIN in_patient AS ip ON ip.in_patient_id = st.in_patient_id
+      JOIN appointment AS a ON a.appointment_id = ip.appointment_id
+      WHERE a.appointment_id = $1 AND st.status = 'pending'
+      AND s.surgery_id = st.surgery_id;
+      `, [appointmentId]
+    );
+  
+    console.log(surgery.rows);
+    return res.json(surgery.rows);
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+
 module.exports = router;

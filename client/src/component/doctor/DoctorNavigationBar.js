@@ -19,8 +19,8 @@ const DoctorNavigationBar = ({ setAuth }) => {
     // },
     {
       name: "Pending Surgery",
-      href: "/doctorhome/surgeries",
-      current: location.pathname === "/doctorhome/surgeries",
+      href: "/pendingsurgery",
+      current: location.pathname === "/pendingsurgery",
     },
     {
       name: "Appointments",

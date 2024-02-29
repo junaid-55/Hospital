@@ -17,6 +17,10 @@ import AdminHome from "./component/admin/AdminHome";
 import LabTestAdminstration from "./component/admin/LabTestAdminstration";
 import DrugAdminstration from "./component/admin/DrugAdminstration";
 import Reports from "./component/admin/Reports";
+import DoctorPatient from "./component/doctor/DoctorPatient";
+import AddPrescription from "./component/doctor/AddPrescription";
+import PendingSurgery from "./component/doctor/PendingSurgery";
+import DoctorAddSurgery from "./component/doctor/DoctorAddSurgery";
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
   async function check_Authenticated() {
@@ -132,6 +136,22 @@ function App() {
               </ProtectedPage>
             }
             />
+            <Route
+            path="/PendingSurgery"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <PendingSurgery setAuth={setAuth} />
+              </ProtectedPage>
+            } 
+            />
+            <Route
+            path="/DoctorAddSurgery/:appointmentId"
+            element={
+              <ProtectedPage isAuthenticated={isAuthenticated}>
+                <DoctorAddSurgery setAuth={setAuth} />
+              </ProtectedPage>
+            }
+            />
 
             <Route path="/appointment/:id" element={<AppointmentData />} />
 
@@ -148,6 +168,7 @@ function App() {
               path="/adminhome/drug-administration"
               element={<DrugAdminstration setAuth={setAuth} />}
             />
+
             <Route
               path="/adminhome/reports"
               element={<Reports setAuth={setAuth} />}
