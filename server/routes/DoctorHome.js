@@ -69,14 +69,14 @@ router.post("", async (req, res) => {
 //     console.log(err.message);
 //   }
 // });
-router.put("/prescription/:appointmentId", async (req, res) => {
+router.put("/makeprescription/:appointmentId", async (req, res) => {
   try {
-    console.log("request coming from /doctorhome/prescription/:appointmentId");
+    console.log("request coming from /doctorhome/makeprescription/:appointmentId");
     const { appointmentId } = req.params;
-    const { disease_name, patientType, date, advice } = req.body;
     const user = await pool.query(
-      "UPDATE prescription SET prescription_id=$1, disease_name=$2, patient_type=$3, date=$4, advice=$5 WHERE prescription_id=$6 RETURNING *",
-      [appointmentId, disease_name, patientType, date, advice, appointmentId]
+      `INSERT INTO prescription (prescription_id)
+       VALUES ($1) RETURNING *`,
+      [appointmentId]
     );
     return res.json(user.rows);
   } catch (err) {
@@ -84,18 +84,57 @@ router.put("/prescription/:appointmentId", async (req, res) => {
     return res.status(500).json({ error: "An error occurred while updating prescription." });
   }
 });
+router.put("/prescription/:appointmentId", async (req, res) => {
+  try {
+    console.log("request coming from /doctorhome/prescription/:appointmentId");
+    const { appointmentId } = req.params;
+    const { diseaseName, patientType, date, advice } = req.body;
+    console.log(appointmentId, diseaseName, patientType, date, advice);
+    const user = await pool.query(
+      `INSERT INTO prescription (prescription_id, disease_name, patient_type, date, advice)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (prescription_id) DO UPDATE 
+       SET disease_name = EXCLUDED.disease_name, patient_type = EXCLUDED.patient_type, 
+           date = EXCLUDED.date, advice = EXCLUDED.advice
+       RETURNING *`,
+      [appointmentId, diseaseName, patientType, date, advice]
+    );
+    
+    return res.json(user.rows);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: "An error occurred while updating prescription." });
+  }
+});
 
-router.put("/prescriptionlab/:appointmentId",  async (req, res) => {
+router.put("/prescription_labtest/:appointmentId", async (req, res) => {
   try {
     console.log("request coming from /doctorhome/prescriptionlab/:appointmentId");
     const { appointmentId } = req.params;
-    const { test_name } = req.body;
-    const user = await pool.query(
-      "UPDATE prescription_lab SET test_name = $1, test_id = (SELECT test_id FROM drug WHERE test_name = $1) RETURNING *",
-      [test_name]
-    );
-      
-    return res.json(user.rows);
+    const { Test } = req.body;
+
+    const insertedPrescriptions = await Promise.all(Test.map(async (test) => {
+      const { name } = test; // Extract the name property from each test object
+
+      const user = await pool.query(
+        `
+        WITH selected_test AS (
+          SELECT test_id FROM test WHERE name = $1
+        )
+        INSERT INTO prescription_lab (prescription_id, test_id)
+        SELECT $2, selected_test.test_id
+        FROM selected_test
+        ON CONFLICT ON CONSTRAINT unique_prescription_lab 
+        DO NOTHING
+        RETURNING *;
+        `,
+        [name, appointmentId] // Pass the name property and appointmentId separately
+      );
+
+      return user.rows; // Return the result rows
+    }));
+
+    return res.json(insertedPrescriptions.flat());
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ error: "Internal Server Error" });
@@ -103,22 +142,42 @@ router.put("/prescriptionlab/:appointmentId",  async (req, res) => {
 });
 
 
-router.put("/prescriptionsurgery/:appointmentId", async (req, res) => {
+router.put("/prescription_surgery/:appointmentId", async (req, res) => {
   try {
     console.log("request coming from /doctorhome/prescriptionsurgery/:appointmentId");
-    const { id } = req.params;
-    const { surgery_id} = req.body;
-    const user = await pool.query(
-      "UPDATE prescription_surgery SET  surgery_name=$1,surgery_id=(select surgery_id from surgery where surgery_name=$1), status='pending' RETURNING *",
-      [surgery_id]
-    );
-    return res.json(user.rows);
-  }
-  catch (err) {
+    const { appointmentId } = req.params;
+    const { Surgery } = req.body;
+
+    const insertedPrescriptions = await Promise.all(Surgery.map(async (surgery) => {
+      const { name, date } = surgery;
+      console.log(name, date);
+      
+      const user = await pool.query(
+        `
+        WITH selected_surgery AS (
+          SELECT surgery_id FROM surgery WHERE name = $1
+        )
+        INSERT INTO prescription_surgery (prescription_id, surgery_id, date)
+        SELECT $2, surgery_id, $3 FROM selected_surgery
+        ON CONFLICT ON CONSTRAINT unique_prescription_surgery
+        DO UPDATE SET date = EXCLUDED.date
+        WHERE prescription_surgery.surgery_id = EXCLUDED.surgery_id
+        RETURNING *;
+        `,
+        [name, appointmentId, date]
+      );
+      
+      console.log(name, date);
+      return user.rows;
+    }));
+
+    return res.json(insertedPrescriptions.flat());
+  } catch (err) {
     console.log(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-}
-);
+});
+
 router.put("/prescription_drug/:appointmentId", async (req, res) => {
   try {
     console.log("request coming from /doctorhome/prescription_drug/:appointmentId");
@@ -127,17 +186,29 @@ router.put("/prescription_drug/:appointmentId", async (req, res) => {
     
     const insertedPrescriptions = await Promise.all(drugs.map(async (drug) => {
       const { name, dosage, days } = drug;
+      console.log(name, dosage, days,dosage);
       const user = await pool.query(
         `WITH selected_drug AS (
-          SELECT drug_id FROM drug WHERE name = $2
-      )
-      INSERT INTO prescription_drug(prescription_id, drug_id, drug_name, dosage, days) 
-      SELECT $1, drug_id, $2, $3, $4 FROM selected_drug RETURNING *
-      `,
-               [appointmentId,name, dosage, days]
+          SELECT drug_id FROM drug WHERE name = $1
+        )
+        INSERT INTO prescription_drug (prescription_id, drug_id,drug_name, dosage, days) 
+        SELECT $4, drug_id,$1, $2, $3 FROM selected_drug
+        ON CONFLICT ON CONSTRAINT unique_prescription_drug  
+        DO UPDATE 
+          SET dosage = EXCLUDED.dosage,
+              days = EXCLUDED.days
+        WHERE prescription_drug.drug_id = EXCLUDED.drug_id
+        RETURNING *;
+      
+        `,
+               [name, dosage, days,appointmentId]
       );
+
+      console.log(name, dosage, days);
+
       return user.rows;
     }));
+    console.log(name, dosage, days,dosage);
 
     return res.json(insertedPrescriptions.flat());
   } catch (err) {

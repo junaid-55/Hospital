@@ -9,7 +9,7 @@ const AddPrescription = () => {
     drugs: [{ name: [], dosage: [0, 0, 0], days: 0  }],
     advice: "",
     Test: [],
-    Surgery: [],
+    Surgery: [{ name: "",date: "" }],
   });
 
   const [allDrugs, setAllDrugs] = useState([]); // State to store all drugs
@@ -40,6 +40,28 @@ const AddPrescription = () => {
       console.error("Error fetching appointment details:", error.message);
     }
   };  
+  const makeprescription = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/doctorhome/makeprescription/${appointmentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Prescription successfully made:", data);
+    } catch (error) {
+      console.error("Error making prescription:", error.message);
+    }
+  };
+  
+
+
 const fetchTests = async () => {
 
   try {
@@ -60,13 +82,24 @@ const fetchSurgeries = async () => {
   }
 };
   useEffect(() => {
-   
     fetchDrugs();
     appointmentDetails();
     fetchTests();
     fetchSurgeries();
     
+    
   }, []);
+  useEffect(() => {
+    const storedPrescription = localStorage.getItem("prescription");
+    if (storedPrescription) {
+      setPrescription(JSON.parse(storedPrescription));
+    }
+  }, []);
+  
+  // Save prescription data to local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("prescription", JSON.stringify(prescription));
+  }, [prescription]);
 
   // Fetch prescription data if appointmentId changes
   // useEffect(() => {
@@ -112,16 +145,17 @@ const handleSurgeryInputChange = (index, value) => {
   };
   const handleTestSelection = (index, selectedTest) => {
     const tests = [...prescription.Test];
-    tests[index] = selectedTest;
-    setPrescription({ ...prescription,  tests });
+    tests[index] = {name: selectedTest};
+    setPrescription({ ...prescription,  Test:tests });
     setFilteredTests([]); // Clear filtered drugs after selection
   };
   const handleSurgerySelection = (index, selectedSurgery) => {
     const surgeries = [...prescription.Surgery];
-    surgeries[index] = selectedSurgery;
-    setPrescription({ ...prescription,  surgeries });
-    setFilteredSurgeries([]); // Clear filtered drugs after selection
+    surgeries[index] = { name: selectedSurgery };
+    setPrescription({ ...prescription, Surgery: surgeries });
+    setFilteredSurgeries([]); // Clear filtered surgeries after selection
   };
+  
  const handleAddTest = () => {
   setPrescription({
     ...prescription,
@@ -154,7 +188,9 @@ const handleSurgeryInputChange = (index, value) => {
         date: prescription.date,
         advice: prescription.advice
       };
-  
+      console.log(prescriptionData);
+      localStorage.setItem("prescription", JSON.stringify(prescriptionData));
+
       const response = await fetch(`http://localhost:5000/doctorhome/prescription/${appointmentId}`, {
         method: "PUT",
         headers: {
@@ -166,6 +202,8 @@ const handleSurgeryInputChange = (index, value) => {
       if (response.ok) {
         if (prescription.drugs.length > 0) {
           try {
+            localStorage.setItem("prescription", JSON.stringify({ drugs: prescription.drugs}));
+
             const response1 = await fetch(`http://localhost:5000/doctorhome/prescription_drug/${appointmentId}`, {
               method: "PUT",
               headers: {
@@ -183,12 +221,13 @@ const handleSurgeryInputChange = (index, value) => {
   
         if (prescription.Test.length > 0) {
           try {
-            const response2 = await fetch(`http://localhost:5000/doctorhome/prescription_test/${appointmentId}`, {
+            localStorage.setItem("prescription", JSON.stringify({ Test: prescription.Test}));
+            const response2 = await fetch(`http://localhost:5000/doctorhome/prescription_labtest/${appointmentId}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(prescription.Test),
+              body: JSON.stringify({Test:prescription.Test}),
             });
             if (!response2.ok) {
               throw new Error("Failed to save prescription tests");
@@ -200,12 +239,14 @@ const handleSurgeryInputChange = (index, value) => {
   
         if (prescription.Surgery.length > 0) {
           try {
+            console.log(prescription.Surgery);
+            localStorage.setItem("prescription", JSON.stringify({ Surgery: prescription.Surgery}));
             const response3 = await fetch(`http://localhost:5000/doctorhome/prescription_surgery/${appointmentId}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(prescription.Surgery),
+              body: JSON.stringify({Surgery:prescription.Surgery}),
             });
             if (!response3.ok) {
               throw new Error("Failed to save prescription surgeries");
@@ -220,6 +261,7 @@ const handleSurgeryInputChange = (index, value) => {
           title: 'Success',
           text: 'Prescription added successfully',
         });
+        
       }} else {
         console.error("Failed to save prescription");
       }
@@ -292,6 +334,7 @@ const handleDeleteTest = (index) => {
   return (
     <div>
       <h2>Add Prescription</h2>
+      <h2>  </h2>
       <form onSubmit={handleSavePrescription}>
       <div>
         <label htmlFor="patientType">Patient Type:</label>
@@ -306,17 +349,19 @@ const handleDeleteTest = (index) => {
           <option value="Out Patient">Out Patient</option>
         </select>
       </div>
+      <h2>  </h2>
         <div>
-          <label htmlFor="diseaseName">Disease Name:</label>
+          <label htmlFor="diseaseName">Disease Name: </label>
           <input
-            type="text"
-            id="diseaseName"
-            name="diseaseName"
-            value={prescription.diseaseName}
-            onChange={(e) =>
-              setPrescription({ ...prescription, diseaseName: e.target.value })
-            }
-          />
+  type="text"
+  id="diseaseName"
+  name="diseaseName"
+  value={prescription.diseaseName}
+  onChange={(e) =>
+    setPrescription({ ...prescription, diseaseName: e.target.value })
+  }
+/>
+
         </div>
         <div>
           <label htmlFor="date">Date:</label>
@@ -398,11 +443,11 @@ const handleDeleteTest = (index) => {
      {/* Test Inputs */}
      {prescription.Test.map((test, testIndex) => (
   <div key={testIndex} style={{ display: "flex", alignItems: "center" }}>
-    <label htmlFor={`testName${testIndex}`}>Test Name:</label>
+    <label htmlFor={`testName_${testIndex}`}>Test Name:</label>
     <input
       type="text"
-      id={`testName${testIndex}`}
-      name={`testName${testIndex}`}
+      id={`testName_${testIndex}`}
+      name={`testName_${testIndex}`}
       value={test.name}
       onChange={(e) => handleTestInputChange(testIndex, e.target.value)}
     />
@@ -425,7 +470,6 @@ const handleDeleteTest = (index) => {
   </div>
 ))}
 <button type="button" onClick={handleAddTest}>Add Tests</button>
-
 {prescription.Surgery.map((surgery, surgeryIndex) => (
   <div key={surgeryIndex} style={{ display: "flex", alignItems: "center" }}>
     <label htmlFor={`surgeryName${surgeryIndex}`}>Surgery Name:</label>
@@ -436,25 +480,39 @@ const handleDeleteTest = (index) => {
       value={surgery.name}
       onChange={(e) => handleSurgeryInputChange(surgeryIndex, e.target.value)}
     />
-    {/* Render all drug names in the dropdown */}
+    {/* Render all surgery names in the dropdown */}
     <select
       value={surgery.name}
       onChange={(e) => handleSurgerySelection(surgeryIndex, e.target.value)}
     >
       <option value="">Select Surgery</option>
-      {allTests.map((surgery) => (
-        <option key={surgery.id} value={surgery.name}>
-          {surgery.name}
+      {allSurgeries.map((surgeryOption) => (
+        <option key={surgeryOption.id} value={surgeryOption.name}>
+          {surgeryOption.name}
         </option>
       ))}
     </select>
-    
+    <div style={{ marginLeft: "10px" }}>
+      <label htmlFor={`date_${surgeryIndex}`}>Date:</label>
+      <input
+        type="date"
+        id={`date_${surgeryIndex}`}
+        name={`date_${surgeryIndex}`}
+        value={surgery.date}
+        onChange={(e) => {
+          const updatedSurgeries = [...prescription.Surgery];
+          updatedSurgeries[surgeryIndex].date = e.target.value;
+          setPrescription({ ...prescription, Surgery: updatedSurgeries });
+        }}
+      />
+    </div>
     <button type="button" onClick={() => handleDeleteSurgery(surgeryIndex)}>
       Delete
     </button>
   </div>
 ))}
 <button type="button" onClick={handleAddSurgery}>Add Surgery</button>
+
 
         <div>
           <label htmlFor="advice">Advice:</label>

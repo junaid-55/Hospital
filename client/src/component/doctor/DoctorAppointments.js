@@ -108,6 +108,25 @@ const deleteFromPending = async (appointmentId) => {
     });
   } 
 };
+const makeprescription = async (appointmentId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/doctorhome/makeprescription/${appointmentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log("Prescription successfully made:", data);
+  } catch (error) {
+    console.error("Error making prescription:", error.message);
+  }
+};
 const approveAppointment = async (appointmentId) => {
   try {
     const response = await fetch(`http://localhost:5000/doctorhome/approve/${appointmentId}`, {
@@ -127,6 +146,7 @@ const approveAppointment = async (appointmentId) => {
       });
      // deleteFromPending(appointmentId);
       fetchAppointments(doctorId, 'pending');
+        makeprescription(appointmentId);
 
     } else {
       throw new Error('Failed to approve appointment');
