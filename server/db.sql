@@ -34,11 +34,9 @@ CREATE TABLE doctor (
 --prescription table
 CREATE TABLE prescription(
     prescription_id SERIAL PRIMARY KEY,
---changes made
-    --patient_name varchar(250),
+    patient_type VARCHAR(15),
     disease_name VARCHAR(250),
     date DATE,
-    drug_name_with_time varchar(250),
     advice TEXT
 );
 
@@ -47,8 +45,6 @@ CREATE TABLE appointment (
     appointment_id SERIAL PRIMARY KEY,
     doctor_id INT, 
     patient_id INT, 
---changes made
-    --out_patient_id INT,
     prescription_id INT,
     type varchar(50),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
@@ -175,9 +171,21 @@ CREATE TABLE drug_taken (
     quantity INT, 
     in_patient_id INT,
     price FLOAT,
+    --changes made here
+    taken_date DATE,
     FOREIGN KEY (drug_id) REFERENCES drug(drug_id),
     FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id)
 
+);
+
+
+create table prescription_drug (
+    prescription_id int,
+    drug_id int,
+    dosage varchar(50),
+    days int,
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (drug_id) REFERENCES drug(drug_id)
 );
 
 --test table
@@ -201,6 +209,12 @@ CREATE TABLE test_taken (
     FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
 );
 
+create table prescription_lab (
+    prescription_id int,
+    test_id int,
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (test_id) REFERENCES test(test_id)
+);
 --bill table
 CREATE TABLE bill(
     bill_id SERIAL PRIMARY KEY,
@@ -212,22 +226,3 @@ CREATE TABLE bill(
     FOREIGN KEY (in_patient_id) REFERENCES in_patient(in_patient_id),
     FOREIGN KEY (out_patient_id) REFERENCES out_patient(out_patient_id)
 );
-
-create table prescription_lab (
-
-    prescription_id int,
-    test_id int,
-    test_name varchar(100),
-    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
-    FOREIGN KEY (test_id) REFERENCES test(test_id)
-);
-create table prescription_drug (
-    prescription_id int,
-    drug_id int,
-    drug_name varchar(100),
-    dosage varchar(50),
-    days int,
-    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
-    FOREIGN KEY (drug_id) REFERENCES drug(drug_id)
-);
-
