@@ -5,6 +5,8 @@ import NavigationBar from "./NavigationBar";
 function PatientAppointment({ setAuth }) {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
+
   const appointment_data = async () => {
     const res = await fetch("http://localhost:5000/appointments", {
       method: "GET",
@@ -16,6 +18,7 @@ function PatientAppointment({ setAuth }) {
     });
     const data = await res.json();
     setAppointments(data);
+    // filterAppointmentsByStatus("pending");
     console.log(data);
   };
 
@@ -37,9 +40,30 @@ function PatientAppointment({ setAuth }) {
     }
   };
 
+  const filterAppointmentsByStatus = (status) => {
+    setFilteredAppointments(
+      appointments.filter((appointment) => appointment.status === status)
+    );
+  };
+
+  // useEffect(() => {
+  //   // Call appointment_data immediately after the component mounts
+  //   appointment_data();
+  
+  //   // Set up an interval to call appointment_data every 5 seconds
+  //   const intervalId = setInterval(appointment_data, 5000);
+  
+  //   // Clear the interval when the component unmounts
+  //   return () => clearInterval(intervalId);
+  // }, []);
+
   useEffect(() => {
-    appointment_data();
+     appointment_data();
   }, []);
+
+  useEffect(() => {
+    filterAppointmentsByStatus("pending");
+  }, [appointments]);
 
   //parsing of date
   function formatDate(dateString) {
@@ -54,8 +78,27 @@ function PatientAppointment({ setAuth }) {
   return (
     <Fragment>
       <NavigationBar setAuth={setAuth} />
-      <div className="row my-5 container ">
-        {appointments.map((appointment, index) => (
+      <div className="row mt-4 container ">
+        <div className="flex" aria-label="Pending and Approved Appointments">
+          <button
+            type="button"
+            className="btn btn-primary w-1/2"
+            onClick={() => filterAppointmentsByStatus("pending")}
+            style={{ color: "#000" }}
+          >
+            Pending Appointments
+          </button>
+          <button
+            type="button"
+            className="btn btn-success w-1/2"
+            onClick={() => filterAppointmentsByStatus("approved")}
+            style={{ color: "#000" }}
+          >
+            Approved Appointments
+          </button>
+        </div>
+        <div className="mt-4">
+        {filteredAppointments.map((appointment) => (
           <div key={appointment.appointment_id} class="col-md-12 mb-4">
             <div class="card dark:bg-slate-300">
               <div class="card-body">
@@ -63,7 +106,7 @@ function PatientAppointment({ setAuth }) {
                 {/* <h6 class="card-text">{appointment.type}</h6> */}
                 <p class="card-text">{formatDate(appointment.date)}</p>
                 <p class="card-text">{appointment.contact_no}</p>
-                {!appointment.status === "pending" ? (
+                {appointment.status === "pending" ? (
                   <div>
                     <button class="btn btn-secondary position-absolute top-2 end-3 custom-btn">
                       Pending...
@@ -88,6 +131,7 @@ function PatientAppointment({ setAuth }) {
           </div>
         ))}
       </div>
+    </div>
     </Fragment>
   );
 }

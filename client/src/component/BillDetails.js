@@ -1,10 +1,11 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function BillDetails() {
     const [appointment_data, setAppointment_data] = useState([]);
     const [drug_data, setDrug_data] = useState([]);
     const [labtest, setLabTest] = useState([]);
+    const [bills, setBills] = useState([]);
     const [isPaid, setIsPaid] = useState(false);
     const { id } = useParams();
 
@@ -27,21 +28,44 @@ function BillDetails() {
         }
     };
 
-    useEffect(() => {
-        fetchAppointment_data();
-    }, []);
+    const BillDetails = async () => {
+        console.log("Fetching details for bills:", id);
+        try {
+            const res = await fetch(`http://localhost:5000/bill/${id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    token: localStorage.token,
+                },
+            });
+            const data = await res.json();
+            setBills(data);
+            console.log("Details:", data);
+        } catch (error) {
+            console.error("Error fetching details:", error.message);
+        }
+    }
 
     const formatDate = (dateString) => {
         const options = { year: "numeric", month: "long", day: "numeric" };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
+    
     const handlePayBill = () => {
         setIsPaid(true);
     };
 
+    useEffect(() => {
+        fetchAppointment_data();
+    }, []);
+
+    useEffect(() => {
+        BillDetails();
+    }, []);
+
     return (
         <Fragment>
-            <h2 className="text-2xl font-bold text-center">Bill Details</h2>
+            <h2 className="text-2xl font-bold text-center" style={{fontSize:"30px"}} >Bill Details</h2>
 
             {/* Bill details */}
             <div className="flex justify-between mt-4">
@@ -54,7 +78,7 @@ function BillDetails() {
                     {isPaid ? (
                         <p className="ml-2">12th May, 2021</p>
                     ) : (
-                        <p className="ml-2">---------</p>
+                        <p className="ml-2"> --------- </p>
                     )}
                 </div>
             </div>
@@ -85,16 +109,20 @@ function BillDetails() {
             </div>
             <br />
             {/* Bill details */}
-            <div className="flex justify-between mt-4">
-                <h3 className="text-lg font-bold w-1/4">LSD</h3>
-                <p className=" mr-24"> -------------------------------- </p>
-                <p className="ml-2">$100</p>
+            <h3 className="text-lg font-bold text-center" style={{ fontSize: '25px' }}>Bills</h3>            <div className="flex justify-between mt-4">
+                {bills.map((bill) => (
+                    <Fragment>
+                    <h3 className="text-lg font-bold ">{bill.type}</h3>
+                    <p className=""> ------------------------------------- </p>
+                    <p className="ml-2">{bill.fee}</p> 
+                    </Fragment>
+                ))}
             </div>
 
             {/* Payment status */}
             <div className="flex justify-end mt-4">
                 <h3 className="text-lg font-bold w-1/3 mr-32 text-right">Bill:</h3>
-                <p className="ml-2">100$</p>
+                <p className="ml-2">{bills[0] && bills[0].fee}</p>
             </div>
         </Fragment>
     );

@@ -12,11 +12,6 @@ const DoctorNavigationBar = ({ setAuth }) => {
       href: "/doctorhome",
       current: location.pathname === "/doctorhome",
     },
-    // {
-    //   name: "Lab Test",
-    //   href: "/tests",
-    //   current: location.pathname === "/tests",
-    // },
     {
       name: "Pending Surgery",
       href: "/doctorhome/surgeries",

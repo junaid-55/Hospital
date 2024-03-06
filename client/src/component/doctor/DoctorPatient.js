@@ -1,33 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { PDFDownloadLink, Document, Page, Text } from "@react-pdf/renderer";
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import { useNavigate, useParams } from 'react-router-dom';
-import {AddPrescription} from "./AddPrescription";
+import React, { Fragment, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+
 const DoctorPatient = () => {
   const navigate = useNavigate();
   const { appointmentId } = useParams();
-  const [prescription, setPrescription] = useState(null);
   const [appointment, setAppointment] = useState(null);
 
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/doctorhome/doctorappointment/${appointmentId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            token: localStorage.token,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:5000/doctorhome/doctorappointment/${appointmentId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              token: localStorage.token,
+            },
+          }
+        );
         const data = await response.json();
         setAppointment(data);
       } catch (err) {
         console.error(err.message);
         Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to fetch appointment details. Please try again later.',
+          icon: "error",
+          title: "Error",
+          text: "Failed to fetch appointment details. Please try again later.",
         });
       }
     };
@@ -35,49 +35,99 @@ const DoctorPatient = () => {
     fetchAppointment();
   }, [appointmentId]);
 
-  const handlePrescriptionClick = () => {
-    // Generate the prescription PDF
-    // const prescriptionData = generatePrescriptionData();
-    // setPrescription(prescriptionData);
-  };
-
-  const handleBackClick = () => {
-    // Navigate back to the appointment list page
-    navigate('/doctorappointments')
+  const goBack = () => {
+    window.history.back();
   };
 
   const handleSendButton = () => {
-    // Logic to send the prescription as a PDF to the corresponding patient ID
-    // You can use libraries like react-pdf to generate the PDF
-    // For demonstration, let's assume we're just logging the prescription data
-    console.log("Sending prescription:", prescription);
+    Swal.fire({
+      icon: "success",
+      title: "Success",
+      text: "Prescription sent successfully",
+    });
   };
 
-  
   return (
-    <div className="container mt-4">
-      <h1 className="mb-4">Patient Details</h1>
-      {appointment && (
-        <div className="card">
-          <div className="card-body">
-            <h5 className="card-title">Appointment Information</h5>
-            <p className="card-text"><strong>Name:</strong> {appointment.patient_name}</p>
-            <p className="card-text"><strong>Doctor ID:</strong> {appointmentId}</p>
-            <p className="card-text"><strong>Contact Number:</strong> {appointment.contact_no}</p>
-            <p className="card-text"><strong>Type:</strong> {appointment.appointment_type}</p>
-            <p className="card-text"><strong>Appointment Date:</strong> {appointment.date}</p>
-            <div className="d-flex justify-content-between">
-              <button className="btn btn-success" onClick={handleSendButton}>Send Prescription</button>
-              <button className="btn btn-primary" onClick={() =>
-  navigate(`/AddPrescription/${appointment.appointment_id}`)
-}>Generate Prescription</button>
-
-              <button className="btn btn-danger" onClick={handleBackClick}>Back</button>
-            </div>
-          </div>
+    <Fragment>
+      <div className="ml-8">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6 mr-2 mt-4"
+          onClick={goBack}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
+        </svg>
+      </div>
+      <div className="ml-40 mt-10">
+        <div className="px-4 sm:px-0">
+          <h3 className="text-xl font-semibold font-mono leading-7 text-gray-900">
+            Patient Details
+          </h3>
+          <p className="mt-1 text-lg  font-semibold font-mono max-w-2xl  leading-6 text-gray-500">
+            Personalized details of this appointment...
+          </p>
         </div>
-      )}
-    </div>
+        {appointment && (
+          <div class="mt-6 border-t border-gray-100">
+            <dl class="divide-y divide-gray-100">
+              <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
+                  Patient Name
+                </dt>
+                <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {appointment.patient_name}
+                </dd>
+              </div>
+              <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
+                  Appointment Date
+                </dt>
+                <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {new Date(appointment.date).toDateString()}
+                </dd>
+              </div>
+              <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
+                  Patient Email
+                </dt>
+                <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {appointment.patient_email}
+                </dd>
+              </div>
+              <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt class="text-lg font-semibold font-mono leading-6 text-gray-900">
+                  Appointment Type
+                </dt>
+                <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {appointment.appointment_type}
+                </dd>
+              </div>
+              <div className="flex justify-center">
+                <button className="btn btn-success w-1/4 mr-20" onClick={handleSendButton}>
+                  Send Prescription
+                </button>
+                <button
+                  className="btn btn-primary w-1/4"
+                  onClick={() =>
+                    navigate(`/AddPrescription/${appointment.appointment_id}`)
+                  }
+                >
+                  Generate Prescription
+                </button>
+              </div>
+            </dl>
+          </div>
+        )}
+      </div>
+    </Fragment>
   );
 };
 

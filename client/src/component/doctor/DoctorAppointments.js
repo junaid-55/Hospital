@@ -1,279 +1,170 @@
-import React, { Fragment, useState, useEffect } from 'react';
-import NavigationBar from './DoctorNavigationBar';
-import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
-import DoctorPatient from './DoctorPatient';
-function DoctorAppointments({ setAuth}) {
-  const [showAppointments, setShowAppointments] = useState(false);
+import React, { Fragment, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import NavigationBar from "./DoctorNavigationBar";
+
+function DoctorAppointments({ setAuth }) {
   const [appointments, setAppointments] = useState([]);
-  const [doctorId, setDoctorId] = useState(null); // State to store doctor ID
-  const [ApprovedAppointments, setApprovedAppointments] = useState([]);
- const [showapprovedAppointments, setShowApprovedAppointments] = useState(false);
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
 
-const navigate = useNavigate();
-
-  const fetchDoctorId = async () => {
+  const navigate = useNavigate();
+  const fetchAppointments = async () => {
     try {
-      const response = await fetch('http://localhost:5000/doctorhome', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          token: localStorage.token,
-        },
-      });
-      const data = await response.json();
-      setDoctorId(data.doctor_id); // Set doctor ID from backend response
-    } catch (err) {
-      console.error(err.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch doctor ID. Please try again later.',
-      });
-    }
-  };
-  
-
-  useEffect(() => {
-
-    const fetchData = async () => {
-      await fetchDoctorId(); // Wait for fetchDoctorId to complete
-      // Now doctorId should be properly set
-      fetchAppointments(doctorId); 
-      fetchApprovedAppointments(doctorId);        // Fetch appointments after doctorId is set
-    };
-    fetchDoctorId(); // Fetch doctor ID from backend
-  }, []);
-  const fetchAppointments = async (doctorId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/doctorhome/doctor-appointments/${doctorId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          token: localStorage.token,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5000/doctorhome/doctor-appointments`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            token: localStorage.token,
+          },
+        }
+      );
       const data = await response.json();
       setAppointments(data);
-      setShowAppointments(true);
-      setShowApprovedAppointments(false);
+      filterAppointmentsByStatus("pending");
+
     } catch (err) {
       console.error(err.message);
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch appointments. Please try again later.',
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch appointments. Please try again later.oooo",
       });
     }
   };
-const fetchApprovedAppointments = async (doctorId, status) => {
-  try {
-    const response = await fetch(`http://localhost:5000/doctorhome/doctor-approvedappointments/${doctorId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        token: localStorage.token,
-      },
-    });
-    const data = await response.json();
-    setApprovedAppointments(data);
-    setShowApprovedAppointments(true);
-    setShowAppointments(false);
-  } catch (err) {
-    console.error(err.message);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to fetch appointments. Please try again later.',
-    });
-  }
-}
-// Inside DoctorAppointments component
-const deleteFromPending = async (appointmentId) => {
-  try {
-    const response = await fetch(`http://localhost:5000/doctorhome/delete/${appointmentId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        token: localStorage.token,
-      },
-    });
-  }
-  catch (err) {
-    console.error(err.message);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to delete appointment. Please try again later.',
-    });
-  } 
-};
-const approveAppointment = async (appointmentId) => {
-  try {
-    const response = await fetch(`http://localhost:5000/doctorhome/approve/${appointmentId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        token: localStorage.token,
-      },
-    });
 
-    if (response.ok) {
-      // If the request was successful, fetch updated appointments
+  const approveAppointment = async (appointmentId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/doctorhome/approve/${appointmentId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            token: localStorage.token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Appointment approved successfully",
+        });
+      } else {
+        throw new Error("Failed to approve appointment");
+      }
+    } catch (err) {
+      console.error(err.message);
       Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Appointment approved successfully',
+        icon: "error",
+        title: "Error",
+        text: "Failed to approve appointment. Please try again later.",
       });
-     // deleteFromPending(appointmentId);
-      fetchAppointments(doctorId, 'pending');
-
-    } else {
-      throw new Error('Failed to approve appointment');
     }
-  } catch (err) {
-    console.error(err.message);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to approve appointment. Please try again later.',
-    });
-  }
-};
-// const viewAppointment = async (appointmentId) => {  
-//   try {
-//     const response = await fetch(`http://localhost:5000/appointments/${appointmentId}`, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         token: localStorage.token,
-//       },
-//     });
-//     const data = await response.json();
-//     console.log(data);
-//     Swal.fire({
-//       icon: 'info',
-//       title: 'Appointment Details',
-//       html: `
-//       <div class="text-left">
-//         <p><strong>Patient Name:</strong> ${data.patient_name}</p>
-//         <p><strong>Appointment Date:</strong> ${data.appointment_date}</p>
-//         <p><strong>Contact No:</strong> ${data.contact_no}</p>
-        
-//       </div>
-//       `,
-//     });
-//   } catch (err) {
-//     console.error(err.message);
-//     Swal.fire({
-//       icon: 'error',
-//       title: 'Error',
-//       text: 'Failed to fetch appointment details. Please try again later.',
-//     });
-//   }
+  };
 
-// }
+  const pendingAppointmentsClicked = () => {
+    filterAppointmentsByStatus("pending");
+  };
 
-// Inside render method, update the button to handle approval
+  const approvedAppointmentsClicked = () => {
+    filterAppointmentsByStatus("approved");
+  };
 
+  const filterAppointmentsByStatus = (status) => {
+    setFilteredAppointments(
+      appointments.filter((appointment) => appointment.status === status)
+    );
+  };
 
-return (
-  <Fragment>
-    <NavigationBar setAuth={setAuth} />
-    <div className="container">
-      <div className="py-4">
-        <div className="btn-group" role="group" aria-label="Pending and Approved Appointments">
-          <button type="button" className="btn btn-primary" onClick={() => fetchAppointments(doctorId, 'pending')} style={{ color: '#000' }}>Pending Appointments</button>
-          <button type="button" className="btn btn-success" onClick={() => fetchApprovedAppointments(doctorId, 'approved')} style={{ color: '#000' }}>Approved Appointments</button>
-        </div>
-        {showAppointments && (
-          <div>
-            <table className="table border shadow">
-              <thead>
-                <tr>
-                  <th scope="col">Patient Name</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Contact No</th>
-                  <th scope="col">Status</th>
-                  <th scope="col"></th> {/* Approve button column */}
-                </tr>
-              </thead>
-              
-              <tbody>
-                {appointments.map((appointment, index) => (
-                  appointment.status === 'pending' && // Filter pending appointments
-                  <tr key={index}>
-                    <td>{appointment.patient_name}</td>
-                    <td>{appointment.appointment_date}</td>
-                    <td>{appointment.contact_no}</td>
-                    <td>{appointment.status}</td>
-                    <td>
-                      {appointment.status === 'pending' && ( // Render Approve button only for pending appointments
+  const formatDate = (date) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(date).toLocaleDateString(undefined, options);
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  useEffect(() => {
+    filterAppointmentsByStatus("approved");
+  }, [appointments]);
+
+  return (
+    <Fragment>
+      <NavigationBar setAuth={setAuth} />
+      <div className="container">
+        <div className="py-4">
+          <div className="flex" aria-label="Pending and Approved Appointments">
+            <button
+              type="button"
+              className="btn btn-primary w-1/2"
+              onClick={pendingAppointmentsClicked}
+              style={{ color: "#000" }}
+            >
+              Pending Appointments
+            </button>
+            <button
+              type="button"
+              className="btn btn-success w-1/2"
+              onClick={approvedAppointmentsClicked}
+              style={{ color: "#000" }}
+            >
+              Approved Appointments
+            </button>
+          </div>
+          <div className="mt-4">
+            {filteredAppointments.map((appointment, index) => (
+              <div className="col-md-12 mb-4" key={index}>
+                <div className="card dark:bg-slate-300">
+                  <div className="card-body">
+                    <h5 className="card-title">
+                      <span style={{ fontWeight: "bold" }}>Patient Name:</span>
+                      <span className="ml-10">{appointment.patient_name}</span>
+                    </h5>
+                    <h5 className="card-title">
+                      <span style={{ fontWeight: "bold" }}>
+                        Appointment Date:
+                      </span>
+                      <span className="ml-2">
+                        {formatDate(appointment.appointment_date)}
+                      </span>
+                    </h5>
+                    <div>
+                      {appointment.status === "pending" ? (
                         <button
-                          type="button"
-                          className="btn btn-success"
-                          onClick={() => approveAppointment(appointment.appointment_id)}
-                          style={{ color: '#000' }}
+                          className="btn btn-secondary position-absolute top-3 end-3 mt-2 custom-btn"
+                          onClick={() =>
+                            approveAppointment(appointment.appointment_id)
+                          }
                         >
                           Approve
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {showapprovedAppointments && (
-          <div>
-            <table className="table border shadow">
-              <thead>
-                <tr>
-                  <th scope="col">Patient Name</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Contact No</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">View</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ApprovedAppointments.map((appointment, index) => (
-                  appointment.status === 'approved' && // Filter approved appointments
-                  <tr key={index}>
-                    <td>{appointment.patient_name}</td>
-                    <td>{appointment.appointment_date}</td>
-                    <td>{appointment.contact_no}</td>
-                    <td>{appointment.status}</td>
-                    <td>
-                    {appointment.status === 'approved' && ( // Render Approve button only for pending appointments
+                      ) : (
                         <button
-                          type="button"
-                          className="btn btn-success"
+                          className="btn btn-success position-absolute top-3 end-3 custom-btn"
                           onClick={() => {
-                            // Navigate to the appointment details page
-                            navigate(`/DoctorPatient/${appointment.appointment_id}`);
+                            navigate(
+                              `/DoctorPatient/${appointment.appointment_id}`
+                            );
                           }}
-                          style={{ color: '#000' }}
                         >
-                          VIEW
+                          View Details
                         </button>
                       )}
-                     
-                    <td></td>
-                    {/* No action needed for approved appointments */}
-                    </td>
-                  </tr>
-                  
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
-    </div>
-  </Fragment>
-);
-                }
+    </Fragment>
+  );
+}
 
 export default DoctorAppointments;

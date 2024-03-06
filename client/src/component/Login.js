@@ -56,10 +56,13 @@ const Login = ({ setAuth }) => {
         });
       }
 
+      // if user is valid then navigate to their respective home page
+      localStorage.setItem("user_type", user_type);
       // if user is doctor then navigate to doctor home page
       if(user_type === "Doctor"){
         const parseRes = await response.json();
         localStorage.setItem("token", parseRes.token);
+        setAuth(true);
         navigate("/doctorhome");
         return;
       }
