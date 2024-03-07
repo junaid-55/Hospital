@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 const AddPrescription = () => {
@@ -8,7 +8,7 @@ const AddPrescription = () => {
     date: new Date(),
     drugs: [{ name: [], dosage: [0, 0, 0], days: 0 }],
     advice: "",
-    admit_date: "",
+    admit_date: new Date(),
     Test: [],
     Surgery: [{ name: "", date: "" }],
   });
@@ -30,14 +30,19 @@ const AddPrescription = () => {
         `http://localhost:5000/doctorhome/prescription/${appointmentId}`
       );
       const data = await response.json();
-      console.log("previous prescription->", data[0].advice);
+      if(data.length === 0){
+        return;
+      }
+      console.log("previous prescription->", data[0]);
       setPrescription((prevPrescription) => ({
         ...prevPrescription,
         patientType: data[0].patienttype,
+        admit_date: data[0].admit_date ? new Date(data[0].admit_date).toISOString().substring(0, 10) : null,
         diseaseName: data[0].diseasename,
         advice: data[0].advice,
       }));
-      console.log(prescription);
+      setPatientType(data[0].patienttype);
+      console.log("previous prescription->",prescription);
     } catch (error) {
       console.error("Error fetching prescription:", error.message);
     }
@@ -114,6 +119,28 @@ const AddPrescription = () => {
     }
   };
 
+  const fetchSuggestedSurgeries = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/doctorhome/prescription_surgery/${appointmentId}`
+      );
+      const data = await response.json();
+  
+      // Map over the data array and format the date for each item
+      const formattedData = data.map(item => {
+        const date = new Date(item.date);
+        const formattedDate = date.toISOString().split('T')[0];
+        return { ...item, date: formattedDate };
+      });
+  
+      setPrescription((prevPrescription) => ({
+        ...prevPrescription,
+        Surgery: formattedData,
+      }));
+    } catch (error) {
+      console.error("Error fetching suggested surgeries:", error.message);
+    }
+  };
   useEffect(() => {
     fetchPrescription();
     fetchDrugs();
@@ -121,6 +148,7 @@ const AddPrescription = () => {
     fetchTests();
     fetchSuggestedTests();
     fetchSurgeries();
+    fetchSuggestedSurgeries();
   }, []);
 
   const handlePatientTypeChange = (e) => {
@@ -157,6 +185,7 @@ const AddPrescription = () => {
     setPrescription({ ...prescription, drugs });
     setFilteredDrugs([]); // Clear filtered drugs after selection
   };
+  
   const handleTestSelection = (index, selectedTest) => {
     const tests = [...prescription.Test];
     tests[index] = { name: selectedTest };
@@ -268,14 +297,9 @@ const AddPrescription = () => {
           text: "Failed to add prescription",
         });
       }
-      return;
       if (prescription.Surgery.length > 0) {
         try {
-          console.log(prescription.Surgery);
-          localStorage.setItem(
-            "prescription",
-            JSON.stringify({ Surgery: prescription.Surgery })
-          );
+          console.log("Surgerys->",prescription.Surgery);
           const response3 = await fetch(
             `http://localhost:5000/doctorhome/prescription_surgery/${appointmentId}`,
             {
@@ -542,72 +566,75 @@ const AddPrescription = () => {
         Add Tests
       </button>
 
-      <h3 className="font-bold text-lg" htmlFor={`surgeryName`}>
-        Surgery Name:
-      </h3>
-      {prescription.Surgery.map((surgery, surgeryIndex) => (
-        <div
-          key={surgeryIndex}
-          className="mt-3 flex"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <input
-            type="text"
-            id={`surgeryName${surgeryIndex}`}
-            name={`surgeryName${surgeryIndex}`}
-            value={surgery.name}
-            className="w-1/4  ml-64 rounded-l"
-            onChange={(e) =>
-              handleSurgeryInputChange(surgeryIndex, e.target.value)
-            }
-          />
-          {/* Render all surgery names in the dropdown */}
-          <select
-            value={surgery.name}
-            className="w-1/4 rounded-r"
-            onChange={(e) =>
-              handleSurgerySelection(surgeryIndex, e.target.value)
-            }
-          >
-            <option value="">Select Surgery</option>
-            {allSurgeries.map((surgeryOption) => (
-              <option key={surgeryOption.id} value={surgeryOption.name}>
-                {surgeryOption.name}
-              </option>
-            ))}
-          </select>
-          <div style={{ marginLeft: "10px" }} className="flex ml-3">
-            <h3 className="font-bold mt-2" htmlFor={`date_${surgeryIndex}`}>
-              Date:
-            </h3>
-            <input
-              type="date"
-              id={`date_${surgeryIndex}`}
-              name={`date_${surgeryIndex}`}
-              value={surgery.date}
-              className="rounded"
-              onChange={(e) => {
-                const updatedSurgeries = [...prescription.Surgery];
-                updatedSurgeries[surgeryIndex].date = e.target.value;
-                setPrescription({
-                  ...prescription,
-                  Surgery: updatedSurgeries,
-                });
-              }}
-            />
-          </div>
-          <button
-            className="btn btn-danger ml-3"
-            onClick={() => handleDeleteSurgery(surgeryIndex)}
-          >
-            Delete
+      {patientType === "In_Patient" && (
+        <Fragment>
+          <h3 className="font-bold text-lg" htmlFor={`surgeryName`}>
+            Surgerys:
+          </h3>
+          {prescription.Surgery.map((surgery, surgeryIndex) => (
+            <div
+              key={surgeryIndex}
+              className="mt-3 flex"
+              style={{ display: "flex", alignItems: "center" }}
+            >
+              <input
+                type="text"
+                id={`surgeryName${surgeryIndex}`}
+                name={`surgeryName${surgeryIndex}`}
+                value={surgery.name}
+                className="w-1/4  ml-64 rounded-l"
+                onChange={(e) =>
+                  handleSurgeryInputChange(surgeryIndex, e.target.value)
+                }
+              />
+              {/* Render all surgery names in the dropdown */}
+              <select
+                value={surgery.name}
+                className="w-1/4 rounded-r"
+                onChange={(e) =>
+                  handleSurgerySelection(surgeryIndex, e.target.value)
+                }
+              >
+                <option value="">Select Surgery</option>
+                {allSurgeries.map((surgeryOption) => (
+                  <option key={surgeryOption.id} value={surgeryOption.name}>
+                    {surgeryOption.name}
+                  </option>
+                ))}
+              </select>
+              <div style={{ marginLeft: "10px" }} className="flex ml-3">
+                <h3 className="font-bold mt-2" htmlFor={`date_${surgeryIndex}`}>
+                  Date:
+                </h3>
+                <input
+                  type="date"
+                  id={`date_${surgeryIndex}`}
+                  name={`date_${surgeryIndex}`}
+                  value={surgery.date}
+                  className="rounded"
+                  onChange={(e) => {
+                    const updatedSurgeries = [...prescription.Surgery];
+                    updatedSurgeries[surgeryIndex].date = e.target.value;
+                    setPrescription({
+                      ...prescription,
+                      Surgery: updatedSurgeries,
+                    });
+                  }}
+                />
+              </div>
+              <button
+                className="btn btn-danger ml-3"
+                onClick={() => handleDeleteSurgery(surgeryIndex)}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+          <button className="btn btn-success" onClick={handleAddSurgery}>
+            Add Surgery
           </button>
-        </div>
-      ))}
-      <button className="btn btn-success" onClick={handleAddSurgery}>
-        Add Surgery
-      </button>
-
+        </Fragment>
+      )}
       <div className="flex mt-3">
         <h3 className="font-bold text-lg" htmlFor="advice">
           Advice:

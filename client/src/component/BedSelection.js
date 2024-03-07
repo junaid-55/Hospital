@@ -48,6 +48,7 @@ function BedSelection() {
   const handleSelectClick = async (bed_id) => {
     const selectedDateWithoutTime = new Date(selectedDate.setHours(0, 0, 0, 0));
     const currentDateWithoutTime = new Date().setHours(0, 0, 0, 0);
+    console.log(selectedDateWithoutTime, currentDateWithoutTime);
     if (selectedDateWithoutTime < currentDateWithoutTime) {
       swal.fire({
         icon: "error",
@@ -56,6 +57,7 @@ function BedSelection() {
       });
       return;
     }
+    const occupying_date = `${selectedDateWithoutTime.getFullYear()}-${String(selectedDateWithoutTime.getMonth() + 1).padStart(2, '0')}-${String(selectedDateWithoutTime.getDate()).padStart(2, '0')}`;
     const res = await fetch(
       `http://localhost:5000/appointments/bed_selection/bed_select/${id}`,
       {
@@ -67,7 +69,7 @@ function BedSelection() {
         body: JSON.stringify({
           appointment_id: id,
           bed_id: bed_id,
-          occupying_date: selectedDateWithoutTime,
+          occupying_date: occupying_date, // Use the date string
         }),
       }
     );

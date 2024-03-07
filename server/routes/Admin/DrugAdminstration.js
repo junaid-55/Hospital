@@ -5,7 +5,7 @@ const authorization = require("../../middleware/authorization");
 router.get("", authorization, async (req, res) => {
   try {
     const patients = await pool.query(
-      `SELECT (pt.first_name || ' ' || pt.last_name) patient_name, apt.appointment_id appointment_id,(doctor.first_name || ' ' || doctor.last_name) doctor_name
+      `SELECT DISTINCT (pt.first_name || ' ' || pt.last_name) patient_name, apt.appointment_id appointment_id,(doctor.first_name || ' ' || doctor.last_name) doctor_name
         FROM in_patient ip 
         JOIN appointment apt ON ip.appointment_id = apt.appointment_id
         JOIN patient pt ON apt.patient_id = pt.patient_id
@@ -40,11 +40,11 @@ router.get("/:id", authorization, async (req, res) => {
             SELECT drug_id 
             FROM drug_taken
             WHERE in_patient_id = (
-                SELECT prescription_id 
-                FROM appointment a 
-                WHERE a.appointment_id = $1
+                SELECT in_patient_id 
+                FROM in_patient ip
+                WHERE ip.appointment_id = $1
             )  
-            AND taken_date = CURRENT_DATE
+            AND taken_date = CURRENT_DATE::DATE
         )
     ) AND prescription_id = ( 
         SELECT prescription_id 
@@ -62,11 +62,14 @@ router.get("/:id", authorization, async (req, res) => {
 
 router.post("/give", authorization, async (req, res) => {
   try {
-    const { drug_id, appointment_id } = req.body;
-    // const drug = await pool.query(
-    //   `INSERT INTO drug_taken (drug_id, in_patient_id, taken_date) VALUES ($1, $2, CURRENT_DATE)`,
-    //   [drug_id, in_patient_id]
-    // );
+    let { drug_id, appointment_id, count } = req.body;
+    count = Number(count); // Convert count to a number
+    const drug = await pool.query(
+      `INSERT INTO drug_taken (drug_id,quantity, in_patient_id,price ,taken_date) 
+      VALUES ($1, $2,(SELECT in_patient_id FROM in_patient WHERE appointment_id = $3),
+      (SELECT price FROM drug WHERE drug_id = $1), CURRENT_DATE)`,
+      [drug_id, count, appointment_id]
+    );
     return res.sendStatus(200);
   } catch (err) {
     console.error(err.message);

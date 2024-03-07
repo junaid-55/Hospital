@@ -123,6 +123,29 @@ router.get("/prescription/:appointment_id", authorization, async (req, res) => {
          WHERE prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1);`,
         [appointment_id]
       );
+    } else if (type === "surgery") {
+      console.log("surgery");
+      data = await pool.query(
+        `SELECT s.name name FROM prescription_surgery ps
+         JOIN surgery s ON ps.surgery_id = s.surgery_id
+         WHERE prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1);`,
+        [appointment_id]
+      );
+    } else if (type === "test_reports") {
+      console.log("test_reports->", req.headers.patient_type);
+      if (req.headers.patient_type === "In Patient") {
+        console.log("In Patient");
+        data = await pool.query(
+          `SELECT DISTINCT (SELECT name FROM test WHERE test_id = tt.test_id) test_name,tt.results report
+          FROM prescription_lab pl LEFT OUTER JOIN appointment a ON pl.prescription_id = a.prescription_id
+          LEFT OUTER JOIN in_patient ip ON a.appointment_id = ip.appointment_id
+          LEFT OUTER JOIN test_taken tt ON tt.in_patient_id = ip.in_patient_id
+          WHERE a.appointment_id  = $1;`,
+          [appointment_id]
+        );
+      }
+    } else {
+      data = { rows: [] };
     }
     console.log(data.rows);
     return res.json(data.rows);
@@ -147,9 +170,9 @@ router.get("/bed_selection/:criteria", authorization, async (req, res) => {
       if (!maxPrice) maxPrice = 100000;
       const bed_search = await pool.query(
         `SELECT * FROM bed 
-        JOIN bed_type on bed.bed_type_id = bed_type.bed_type_id
+         JOIN bed_type on bed.bed_type_id = bed_type.bed_type_id
          WHERE price BETWEEN $1 AND $2
-         AND type_name = $3 AND ac_type = $4 AND is_bed_taken(bed.bed_id) = 0;`,
+         AND type_name = $3 AND ac_type = $4 AND is_bed_taken(bed.bed_id) = 0`,
         [minPrice, maxPrice, roomType, acType]
       );
       return res.json(bed_search.rows);
@@ -160,7 +183,8 @@ router.get("/bed_selection/:criteria", authorization, async (req, res) => {
         `SELECT * FROM bed_taken 
           JOIN bed on bed_taken.bed_id = bed.bed_id
           JOIN bed_type on bed.bed_type_id = bed_type.bed_type_id
-          WHERE in_patient_id = (SELECT in_patient_id FROM in_patient WHERE appointment_id = $1);`,
+          WHERE in_patient_id = (SELECT in_patient_id FROM in_patient WHERE appointment_id = $1)
+          AND occupying_date IS NOT NULL AND discharge_date IS NULL;`,
         [appointment_id]
       );
       console.log(bed_details.rows);
@@ -184,8 +208,8 @@ router.post(
       console.log(req.body);
       const bed_select = await pool.query(
         `INSERT INTO bed_taken (bed_id,in_patient_id,cost,occupying_date) 
-      VALUES ($1,(SELECT in_patient_id FROM in_patient WHERE appointment_id = $2),
-      (SELECT price FROM bed WHERE bed_id = $3),$4) RETURNING *;`,
+          VALUES ($1,(SELECT in_patient_id FROM in_patient WHERE appointment_id = $2),
+          (SELECT price FROM bed WHERE bed_id = $3),$4) RETURNING *;`,
         [bed_id, appointment_id, bed_id, occupying_date]
       );
       return res.json(bed_select.rows[0]);
@@ -208,7 +232,7 @@ router.post(
 //     if (type === "drugs") {
 //       console.log("drugs");
 //       data = await pool.query(
-//         `SELECT d.name ||'-'||pd.dosage name 
+//         `SELECT d.name ||'-'||pd.dosage name
 //          FROM prescription_drug pd
 //          JOIN drug d ON pd.drug_id = d.drug_id
 //          WHERE prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1);`,

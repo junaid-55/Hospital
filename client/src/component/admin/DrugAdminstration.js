@@ -78,8 +78,7 @@ function DrugAdminstration({ setAuth }) {
   };
 
   const handleGive = async(drug_id,appointment_id) => {
-    // closeModal();
-    console.log(appointment_id,drug_id)
+    console.log(appointment_id,drug_id,counters[drug_id])
     try {
       const res = await fetch("http://localhost:5000/drug-administration/give", {
         method: "POST",

@@ -50,12 +50,38 @@ function LabTestAdminstration({ setAuth }) {
     setNumPages(numPages);
   };
 
-  const handleEnterResult = (event) => {
+  const handleSaveResult = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      // const fileURL = URL.createObjectURL(file);
+      // const link = document.createElement('a');
+      // link.href = fileURL;
+      // link.download = file.name;
+      // link.click();
       setFile(file);
+      console.log(file);
     }
     console.log("Test conducted");
+  };
+
+  const handleEnterResult = async (appointment_id, test_id) => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/lab-test-administration/enter_result",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            token: localStorage.token,
+          },
+          body: JSON.stringify({ test_result: file, appointment_id, test_id }),
+        }
+      );
+      const parseRes = await response.json();
+      console.log(parseRes);
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   useEffect(() => {
@@ -65,7 +91,11 @@ function LabTestAdminstration({ setAuth }) {
   return (
     <Fragment>
       <AdminNavigationBar setAuth={setAuth} />
-      <div className="row mt-5 container">
+      <div className="row mt-3 container">
+        <div className="flex justify-between mb-3">
+          <button className="btn btn-primary w-1/2 mr-5">In Patient</button>
+          <button className="btn btn-dark w-1/2">Out Patient</button>
+        </div>
         {patients.map((patient) => (
           <div className="col-md-12 mb-4 " key={patient.appointment_id}>
             <div className="card dark:bg-slate-300">
@@ -119,17 +149,25 @@ function LabTestAdminstration({ setAuth }) {
                                 <input
                                   type="file"
                                   className="rounded"
-                                  onChange={handleEnterResult}
+                                  onChange={handleSaveResult}
                                 />
-                                {/* {typeof window !== "undefined" && (
-                                    <Document
-                                      file={file}
-                                      onLoadSuccess={onDocumentLoadSuccess}
-                                    >
-                                      <Page pageNumber={pageNumber} />
-                                    </Document>
+                                {/* {file && typeof window !== "undefined" && (
+                                  <Document
+                                    file={file}
+                                    onLoadSuccess={onDocumentLoadSuccess}
+                                  >
+                                    <Page pageNumber={pageNumber} />
+                                  </Document>
                                 )} */}
-                                <button className="btn btn-outline-dark custom-btn">
+                                <button
+                                  className="btn btn-outline-dark custom-btn"
+                                  onClick={() =>
+                                    handleEnterResult(
+                                      patient.appointment_id,
+                                      test.test_id
+                                    )
+                                  }
+                                >
                                   Enter Result
                                 </button>
                               </div>

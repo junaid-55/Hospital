@@ -74,7 +74,16 @@ const UserHome = ({ setAuth }) => {
     try {
       closeModal();
       const body = { doctor: selectedDoctor, appointment_date };
-      const res = await fetch("http://localhost:5000/appointments", {
+      console.log(body);
+      if(appointment_date < new Date().setHours(0, 0, 0, 0)) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Please select a valid date",
+        });
+        return;
+      }
+        const res = await fetch("http://localhost:5000/appointments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,6 +233,7 @@ const UserHome = ({ setAuth }) => {
                       <p className="text-lg">Choose Appointment Date</p>
                       <DatePicker
                         selected={appointment_date}
+                        className="rounded"
                         onChange={(date) => setAppointmentDate(date)}
                       />
                     </div>

@@ -40,6 +40,14 @@ CREATE TABLE prescription(
     advice TEXT
 );
 
+create table prescription_surgery (
+    prescription_id int,
+    surgery_id int,
+    date date,  
+    FOREIGN KEY (prescription_id) REFERENCES prescription(prescription_id),
+    FOREIGN KEY (surgery_id) REFERENCES surgery(surgery_id)
+);
+
 --appointment table
 CREATE TABLE appointment (
     appointment_id SERIAL PRIMARY KEY,
@@ -200,7 +208,8 @@ CREATE TABLE  test(
 CREATE TABLE test_taken (
     test_taken_id SERIAL PRIMARY KEY,
     test_id INT, 
-    results TEXT,
+    --CHANGES MADE HERE
+    results BYTEA,
     in_patient_id INT,
     out_patient_id INT,
     price FLOAT,

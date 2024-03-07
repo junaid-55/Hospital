@@ -171,7 +171,6 @@ router.put("/prescription_surgery/:appointmentId", async (req, res) => {
         return user.rows;
       })
     );
-
     return res.json(insertedPrescriptions.flat());
   } catch (err) {
     console.log(err.message);

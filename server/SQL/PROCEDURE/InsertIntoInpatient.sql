@@ -4,7 +4,11 @@ DECLARE
     p_patient_type VARCHAR(15);
     p_prescription_id INT;
     p_contact_no INT;
+    FLAG INT;
 BEGIN
+
+    FLAG := 0;
+
     SELECT prescription_id INTO p_prescription_id
     FROM appointment
     WHERE appointment_id = p_appointment_id;
@@ -17,7 +21,11 @@ BEGIN
     FROM appointment A JOIN patient ON A.patient_id = patient.patient_id
     WHERE A.appointment_id = p_appointment_id;
 
-    IF p_patient_type = 'In_Patient' THEN
+    IF EXISTS (SELECT * FROM in_patient WHERE appointment_id = p_appointment_id) THEN
+        FLAG := 1;
+    END IF;
+
+    IF p_patient_type = 'In_Patient' AND FLAG = 0 THEN
         INSERT INTO in_patient (appointment_id,contact_no,admit_date)
         VALUES (p_appointment_id,p_contact_no,p_admit_date);
     END IF;

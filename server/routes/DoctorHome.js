@@ -121,7 +121,14 @@ router.get("/prescription/:appointmentId", async (req, res) => {
     console.log("request coming from /doctorhome/prescription/:appointmentId");
     const { appointmentId } = req.params;
     const user = await pool.query(
-      `SELECT disease_name diseaseName,patient_type patientType, advice FROM prescription 
+      `SELECT disease_name diseaseName, patient_type patientType, advice,
+      CASE 
+        WHEN patient_type = 'In_Patient' THEN 
+          (SELECT admit_date FROM in_patient 
+              WHERE prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1))
+        ELSE NULL
+      END AS admit_date
+      FROM prescription 
       WHERE prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1)`,
       [appointmentId]
     );
@@ -130,28 +137,26 @@ router.get("/prescription/:appointmentId", async (req, res) => {
     console.log(err.message);
   }
 });
-
 //added after checking
 router.post("/prescription/:appointmentId", async (req, res) => {
   try {
     console.log("request coming from /doctorhome/prescription/:appointmentId");
     const { appointmentId } = req.params;
-    const { diseaseName, patientType, date, advice,admit_date } = req.body;
+    const { diseaseName, patientType, date, advice, admit_date } = req.body;
     console.log(appointmentId, diseaseName, patientType, date, advice);
     const data = await pool.query(
       `CALL insert_into_prescription($3, $2, $4, $5, $1)`,
       [appointmentId, diseaseName, patientType, date, advice]
     );
 
-    console.log("admit_date",admit_date);
+    console.log("admit_date", admit_date);
 
     console.log("Coming Here");
-    if(admit_date !== undefined)
-    {
-      await pool.query(
-        `CALL insert_into_in_patient($1,$2)`,
-        [appointmentId,admit_date]
-      );
+    if (admit_date) {
+      await pool.query(`CALL insert_into_in_patient($1,$2)`, [
+        appointmentId,
+        admit_date,
+      ]);
     }
     console.log("Coming Here Again");
     return res.json(data.rows);
@@ -162,7 +167,6 @@ router.post("/prescription/:appointmentId", async (req, res) => {
       .json({ error: "An error occurred while updating prescription." });
   }
 });
-
 
 router.get("/prescription_labtest/:appointmentId", async (req, res) => {
   try {
@@ -272,8 +276,6 @@ router.put("/prescription_drug/:appointmentId", async (req, res) => {
         return user.rows;
       })
     );
-    // console.log(name, dosage, days,dosage);
-
     return res.json(insertedPrescriptions.flat());
   } catch (err) {
     console.log(err.message);
@@ -281,6 +283,70 @@ router.put("/prescription_drug/:appointmentId", async (req, res) => {
   }
 });
 
+router.get("/prescription_surgery/:appointmentId", async (req, res) => {
+  try {
+    console.log(
+      "request coming from /doctorhome/prescriptionsurgery/:appointmentId"
+    );
+    const { appointmentId } = req.params;
+    const result = await pool.query(
+      `SELECT surgery.name name, prescription_surgery.date date
+       FROM prescription_surgery JOIN surgery ON prescription_surgery.surgery_id = surgery.surgery_id
+       JOIN appointment ON prescription_surgery.prescription_id = appointment.prescription_id
+       WHERE appointment.appointment_id = $1`,
+      [appointmentId]
+    );
+
+    return res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
+//added after checking
+router.put("/prescription_surgery/:appointmentId", async (req, res) => {
+  try {
+    console.log(
+      "request coming from /doctorhome/prescriptionsurgery/:appointmentId"
+    );
+    const { appointmentId } = req.params;
+    const { Surgery } = req.body;
+
+    const insertedPrescriptions = await Promise.all(
+      Surgery.map(async (surgery) => {
+        const { name, date } = surgery;
+        console.log(name, date);
+        if(name === undefined || date === undefined || name === '' || date === ''){
+          return;
+        }
+        const surgeryResult = await pool.query(
+          "SELECT surgery_id FROM surgery WHERE name = $1",
+          [name]
+        );
+        if (surgeryResult.rows[0].surgery_id) {
+          const surgery_id = surgeryResult.rows[0].surgery_id;
+          console.log("Surgery_id->",surgery_id)
+          // Then, call the procedure with the obtained surgery_id
+          await pool.query("CALL insert_into_prescription_surgery($1, $2, $3)", [
+            appointmentId,
+            surgery_id,
+            date,
+          ]);
+        } else {
+          // Handle the case when surgery_id is null, empty, or undefined
+          console.log("surgery_id is null, empty, or undefined");
+        }
+
+        console.log(name, date);
+        return surgeryResult.rows;
+      })
+    );
+    return res.json(insertedPrescriptions.flat());
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 router.post(
   "/prescriptiondrug/:prescription_id",
   authorization,
@@ -299,43 +365,37 @@ router.post(
   }
 );
 
-router.delete(
-  "/deletedrug/:drugName/:appointmentId",
-  async (req, res) => {
-    try {
-      const { appointmentId, drugName } = req.params;
-      console.log(req.params);
-      const user = await pool.query(
-        `DELETE FROM prescription_drug 
+router.delete("/deletedrug/:drugName/:appointmentId", async (req, res) => {
+  try {
+    const { appointmentId, drugName } = req.params;
+    console.log(req.params);
+    const user = await pool.query(
+      `DELETE FROM prescription_drug 
         WHERE drug_id IN (SELECT drug_id FROM drug WHERE name = $2) 
         AND prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $1)`,
-        [appointmentId, drugName]
-      );
-      return res.json(user.rows);
-    } catch (err) {
-      console.log(err.message);
-    }
+      [appointmentId, drugName]
+    );
+    return res.json(user.rows);
+  } catch (err) {
+    console.log(err.message);
   }
-);
+});
 
-router.delete(
-  "/deletetest/:testName/:appointment_id",
-  async (req, res) => {
-    try {
-      const { appointment_id, testName } = req.params;
-      console.log(req.params)
-      const tests = await pool.query(
-        `Delete from prescription_lab 
+router.delete("/deletetest/:testName/:appointment_id", async (req, res) => {
+  try {
+    const { appointment_id, testName } = req.params;
+    console.log(req.params);
+    const tests = await pool.query(
+      `Delete from prescription_lab 
         WHERE test_id = (SELECT test_id FROM test WHERE name=$1 )
         AND prescription_id = (SELECT prescription_id FROM appointment WHERE appointment_id = $2 ) `,
-        [testName, appointment_id]
-      );
-      return res.json(tests.rows);
-    } catch (err) {
-      console.log(err.message);
-    }
+      [testName, appointment_id]
+    );
+    return res.json(tests.rows);
+  } catch (err) {
+    console.log(err.message);
   }
-);
+});
 
 router.get("/doctor-appointments", authorization, async (req, res) => {
   try {
